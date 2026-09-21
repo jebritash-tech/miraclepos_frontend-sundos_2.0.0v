@@ -458,11 +458,11 @@ function resolveDestination() {
   // fallback: من المستخدم المخزّن
   try {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user?.role === 'admin') return '/admin.html';
-    if (user?.role === 'cashier') return '/shift.html';
+    if (user?.role === 'admin') return 'admin.html';
+    if (user?.role === 'cashier') return 'shift.html';
   } catch { /* ignore */ }
 
-  return '/login.html';
+  return 'login.html';
 }
 
 /* ============================================================
@@ -514,7 +514,7 @@ btnReject.addEventListener('click', () => {
 
   // ✅ لا نحذف قبول قديم — فقط نُعيد المستخدم
   // (لو كان قد قَبِل سابقاً ثم رفض الآن، نُبقي القبول القديم)
-  window.location.href = '/login.html';
+  window.location.href = 'login.html';
 });
 
 /* ============================================================
