@@ -118,9 +118,9 @@ function needsEulaAcceptance() {
 |--------------------------------------------------------------------------
 */
 function destinationFor(role) {
-    if (role === 'admin') return '/admin.html';
-    if (role === 'cashier') return '/shift.html';
-    return '/login.html';
+    if (role === 'admin') return 'admin.html';
+    if (role === 'cashier') return 'shift.html';
+    return 'login.html';
 }
 
 
@@ -401,7 +401,7 @@ createApp({
                     // ✅ فحص EULA (نفس المنطق للأونلاين والأوفلاين)
                     if (needsEulaAcceptance()) {
                         const destination = destinationFor(cachedUser.role);
-                        window.location.href = `/legal/eula.html?redirect=${encodeURIComponent(destination)}`;
+                        window.location.href = `legal/eula.html?redirect=${encodeURIComponent(destination)}`;
                         return;
                     }
 
@@ -474,7 +474,7 @@ createApp({
                 const destination = destinationFor(cachedUser.role);
 
                 if (needsEulaAcceptance()) {
-                    window.location.href = `/legal/eula.html?redirect=${encodeURIComponent(destination)}`;
+                    window.location.href = `legal/eula.html?redirect=${encodeURIComponent(destination)}`;
                     return;
                 }
 
