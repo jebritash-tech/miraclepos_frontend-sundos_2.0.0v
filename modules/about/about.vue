@@ -121,7 +121,7 @@
       </p>
 
       <div class="legal-links">
-        <a href="/legal/terms.html" target="_blank" class="legal-link legal-terms">
+        <a href="legal/terms.html" target="_blank" class="legal-link legal-terms">
           <div class="legal-icon">
             <i class="fas fa-file-contract"></i>
           </div>
@@ -134,7 +134,7 @@
           </div>
         </a>
 
-        <a href="/legal/privacy.html" target="_blank" class="legal-link legal-privacy">
+        <a href="legal/privacy.html" target="_blank" class="legal-link legal-privacy">
           <div class="legal-icon">
             <i class="fas fa-user-shield"></i>
           </div>
@@ -147,7 +147,7 @@
           </div>
         </a>
 
-        <a href="/legal/eula.html" target="_blank" class="legal-link legal-eula">
+        <a href="legal/eula.html" target="_blank" class="legal-link legal-eula">
           <div class="legal-icon">
             <i class="fas fa-file-signature"></i>
           </div>
@@ -171,7 +171,7 @@
         الدعم والمساعدة
       </h2>
       <div class="support-links">
-        <a href="/faq.html" target="_blank" class="support-link">
+        <a href="faq.html" target="_blank" class="support-link">
           <div class="support-icon" style="background: #eff6ff; color: #3b82f6;">
             <i class="fas fa-question-circle"></i>
           </div>
@@ -258,11 +258,11 @@
         تم التطوير لدعم كفاءة الصيدليات المتقدمة.
       </p>
       <div class="footer-links">
-        <a href="/legal/terms.html" target="_blank">الشروط</a>
+        <a href="legal/terms.html" target="_blank">الشروط</a>
         <span>•</span>
-        <a href="/legal/privacy.html" target="_blank">الخصوصية</a>
+        <a href="legal/privacy.html" target="_blank">الخصوصية</a>
         <span>•</span>
-        <a href="/faq.html" target="_blank">الدعم</a>
+        <a href="faq.html" target="_blank">الدعم</a>
       </div>
     </div>
 
