@@ -1,8 +1,10 @@
-const API_BASE = import.meta.env.VITE_API_BASE 
-    || 'http://127.0.0.1:8000/api';
+export const API_BASE =
+    'https://miraclepos-api-2-0-0v.onrender.com/api';
 
-export { API_BASE };
+export const APP_NAME =
+    'MiraclePOS';
 
 export default {
     API_BASE,
+    APP_NAME
 };
