@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ماسح الباركود - MiraclePOS</title>
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="./manifest.json">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 i {
+            color: #10b981;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .status.connected { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status.disconnected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status.connecting { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status.waiting { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+
+        .status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .camera-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+        }
+
+        #reader video {
+            object-fit: cover !important;
+        }
+
+        .scan-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .scan-frame {
+            width: 75%;
+            max-width: 320px;
+            aspect-ratio: 1.5;
+            position: relative;
+            border-radius: 16px;
+        }
+
+        .scan-frame .corner-tl,
+        .scan-frame .corner-tr,
+        .scan-frame .corner-bl,
+        .scan-frame .corner-br {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: #10b981;
+            border-style: solid;
+        }
+
+        .corner-tl { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 16px 0 0; }
+        .corner-tr { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 16px 0 0 0; }
+        .corner-bl { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 16px 0; }
+        .corner-br { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 16px; }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            box-shadow: 0 0 20px 4px rgba(16, 185, 129, 0.6);
+            animation: scanLine 2s ease-in-out infinite;
+        }
+
+        @keyframes scanLine {
+            0%, 100% { top: 5%; opacity: 0.5; }
+            50% { top: 95%; opacity: 1; }
+        }
+
+        .last-scan {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            animation: slideUp 0.3s ease;
+            z-index: 20;
+            white-space: nowrap;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .footer {
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .footer .stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .footer .stat strong { color: #10b981; font-weight: 800; }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(16, 185, 129, 0.2);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay p {
+            color: #94a3b8;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .error-box {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.98);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 999;
+            text-align: center;
+        }
+
+        .error-box i {
+            font-size: 60px;
+            color: #ef4444;
+            margin-bottom: 16px;
+        }
+
+        .error-box h2 { font-size: 20px; margin-bottom: 12px; }
+        .error-box p { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+        .error-box button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .manual-mode {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: none;
+            flex-direction: column;
+            z-index: 500;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .manual-mode.active { display: flex; }
+
+        .manual-step {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .manual-step.active {
+            border-color: #10b981;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .manual-step h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .manual-step p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .qr-display {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            display: inline-block;
+            margin: 12px auto;
+        }
+
+        .qr-display img {
+            display: block;
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:active { transform: scale(0.95); }
+
+        .camera-input {
+            width: 100%;
+            max-width: 400px;
+            margin: 12px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flash 0.3s ease-out;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">جاري التهيئة...</p>
+    </div>
+
+    <div class="error-box" id="errorBox">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>تعذر الاتصال</h2>
+        <p id="errorText">يرجى إعادة فتح الرابط من الكمبيوتر.</p>
+        <button onclick="location.reload()">إعادة المحاولة</button>
+    </div>
+
+    <!-- Auto Mode -->
+    <div id="autoMode" style="display: none; flex-direction: column; flex: 1;">
+        <div class="header">
+            <h1><i class="fas fa-barcode"></i> ماسح الباركود</h1>
+            <div class="status connecting" id="connectionStatus">
+                <span class="dot"></span>
+                <span class="status-text">جاري الاتصال...</span>
+            </div>
+        </div>
+
+        <div class="camera-wrapper">
+            <div id="reader"></div>
+
+            <div class="scan-overlay">
+                <div class="scan-frame">
+                    <div class="corner-tl"></div>
+                    <div class="corner-tr"></div>
+                    <div class="corner-bl"></div>
+                    <div class="corner-br"></div>
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+
+            <div class="last-scan" id="lastScan" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <span id="lastScanCode"></span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="stat">
+                <i class="fas fa-bullseye"></i>
+                مسحات ناجحة: <strong id="scanCount">0</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Mode - Simplified -->
+    <div class="manual-mode" id="manualMode">
+        <div class="header" style="margin-bottom: 16px; border-radius: 16px;">
+            <h1><i class="fas fa-wifi-slash"></i> وضع بدون إنترنت</h1>
+            <div class="status waiting">
+                <span class="dot"></span>
+                <span>يدوي</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Scan Offer QR -->
+        <div class="manual-step active" id="step1">
+            <h2><i class="fas fa-qrcode"></i> الخطوة 1: امسح الرمز من الكمبيوتر</h2>
+            <p>وجّه كاميرا هذا الجهاز نحو رمز QR المعروض على شاشة الكمبيوتر.</p>
+            <div class="camera-input" id="offerScanner"></div>
+            <div id="offerStatus" style="margin-top: 12px; font-size: 12px; color: #64748b;">
+                <i class="fas fa-info-circle"></i>
+                في انتظار مسح الرمز...
+            </div>
+        </div>
+
+        <!-- Step 2: Show Answer QR -->
+        <div class="manual-step" id="step2" style="display: none;">
+            <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> الخطوة 2: امسح هذا الرمز بالكمبيوتر</h2>
+            <p>اعرض هذا الرمز على شاشة الكمبيوتر حتى يمسحه.</p>
+            <div class="qr-display">
+                <img id="answerQRImage" alt="Answer QR" />
+            </div>
+            <p style="font-size: 12px; margin-top: 12px; color: #f59e0b;">
+                <i class="fas fa-clock"></i>
+                في انتظار الاتصال...
+            </p>
+        </div>
+
+        <!-- Step 3: Connected -->
+        <div class="manual-step" id="step3" style="display: none;">
+            <h2><i class="fas fa-check-double" style="color: #10b981;"></i> تم الاتصال!</h2>
+            <p>جاهز للمسح. وجّه كاميرا الهاتف نحو الباركود.</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/simple-peer@9.11.1/simplepeer.min.js"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode') || 'auto';
+        const peerId = urlParams.get('peer');
+
+        const state = {
+            mode: mode,
+            peer: null,
+            connection: null,
+            simplePeer: null,
+            isConnected: false,
+            html5QrCode: null,
+            offerScanner: null,
+            scanCount: 0,
+            lastSentCode: '',
+            lastSentTime: 0,
+        };
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const errorBox = document.getElementById('errorBox');
+        const errorText = document.getElementById('errorText');
+        const autoMode = document.getElementById('autoMode');
+        const manualMode = document.getElementById('manualMode');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const lastScan = document.getElementById('lastScan');
+        const lastScanCode = document.getElementById('lastScanCode');
+        const scanCountEl = document.getElementById('scanCount');
+
+        function updateConnectionStatus(status, text) {
+            if (!connectionStatus) return;
+            connectionStatus.className = 'status ' + status;
+            const textEl = connectionStatus.querySelector('.status-text');
+            if (textEl) textEl.textContent = text;
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorBox.style.display = 'flex';
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function flashScreen() {
+            const flash = document.createElement('div');
+            flash.className = 'flash';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 400);
+        }
+
+        let audioContext = null;
+        function playBeep() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 1400;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + 0.12);
+            } catch (e) {}
+        }
+
+        function sendBarcode(code) {
+            const now = Date.now();
+            if (code === state.lastSentCode && (now - state.lastSentTime) < 2000) return false;
+
+            let sent = false;
+
+            if (state.connection && state.connection.open) {
+                try {
+                    state.connection.send({ type: 'barcode', code, timestamp: now });
+                    sent = true;
+                } catch (e) {
+                    console.error('PeerJS send error:', e);
+                }
+            }
+
+            if (!sent && state.simplePeer && state.simplePeer.connected) {
+                try {
+                    state.simplePeer.send(JSON.stringify({ type: 'barcode', code, timestamp: now }));
+                    sent = true;
+                } catch (e) {
+                    console.error('SimplePeer send error:', e);
+                }
+            }
+
+            if (sent) {
+                state.lastSentCode = code;
+                state.lastSentTime = now;
+                state.scanCount++;
+                if (scanCountEl) scanCountEl.textContent = state.scanCount;
+                if (lastScanCode) lastScanCode.textContent = code;
+                if (lastScan) lastScan.style.display = 'block';
+                setTimeout(() => { if (lastScan) lastScan.style.display = 'none'; }, 1500);
+                flashScreen();
+                playBeep();
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+
+            return sent;
+        }
+
+        // ============================================================
+        // AUTO MODE
+        // ============================================================
+        async function startAutoMode() {
+            autoMode.style.display = 'flex';
+
+            if (!peerId) {
+                showError('الرابط لا يحتوي على معرّف الاتصال.');
+                return;
+            }
+
+            loadingText.textContent = 'جاري الاتصال بالكمبيوتر...';
+
+            state.peer = new Peer({ debug: 1 });
+
+            state.peer.on('open', (id) => {
+                console.log('📱 Phone ready, ID:', id);
+
+                const conn = state.peer.connect(peerId, {
+                    reliable: true,
+                    serialization: 'json',
+                });
+
+                state.connection = conn;
+
+                conn.on('open', () => {
+                    console.log('✅ Connected to computer');
+                    state.isConnected = true;
+                    updateConnectionStatus('connected', 'متصل');
+                    conn.send({ type: 'hello', device: navigator.userAgent });
+                    startCamera();
+                });
+
+                conn.on('data', (data) => {
+                    if (data.type === 'ack') {
+                        // Confirmed
+                    }
+                });
+
+                conn.on('close', () => {
+                    state.isConnected = false;
+                    updateConnectionStatus('disconnected', 'انقطع');
+                    showError('انقطع الاتصال بالكمبيوتر.');
+                });
+
+                conn.on('error', (err) => {
+                    console.error('Connection error:', err);
+                    state.isConnected = false;
+                    updateConnectionStatus('disconnected', 'خطأ');
+                });
+            });
+
+            state.peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                let msg = 'فشل الاتصال بالكمبيوتر.';
+                if (err.type === 'peer-unavailable') msg = 'الكمبيوتر غير متاح. تأكد من فتح نافذة المسح.';
+                else if (err.type === 'network') msg = 'مشكلة في الشبكة.';
+                showError(msg);
+            });
+        }
+
+        // ============================================================
+        // MANUAL MODE - Simplified
+        // ============================================================
+        async function startManualMode() {
+            manualMode.classList.add('active');
+            loadingOverlay.classList.add('hidden');
+            await startOfferScanner();
+        }
+
+        async function startOfferScanner() {
+            state.offerScanner = new Html5Qrcode('offerScanner', {
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                verbose: false,
+            });
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+            };
+
+            try {
+                await state.offerScanner.start(
+                    { facingMode: 'environment' },
+                    config,
+                    onOfferScanned,
+                    () => {}
+                );
+            } catch (err) {
+                console.error('Camera error:', err);
+                showError('تعذر فتح الكاميرا. اسمح بالوصول للكاميرا.');
+            }
+        }
+
+        async function onOfferScanned(decodedText) {
+            try {
+                await state.offerScanner.stop();
+                state.offerScanner = null;
+            } catch (e) {}
+
+            await handleManualOffer(decodedText);
+        }
+
+        async function handleManualOffer(offerData) {
+            try {
+                const decoded = JSON.parse(atob(offerData));
+                console.log('📥 Received offer');
+
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                document.getElementById('step2').classList.add('active');
+
+                state.simplePeer = new SimplePeer({
+                    initiator: false,
+                    trickle: false,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                        ],
+                    },
+                });
+
+                state.simplePeer.on('signal', (data) => {
+                    if (data.type === 'answer') {
+                        const answerEncoded = btoa(JSON.stringify(data));
+
+                        QRCode.toDataURL(answerEncoded, {
+                            width: 500,
+                            margin: 1,
+                            errorCorrectionLevel: 'L',
+                            color: {
+                                dark: '#0f172a',
+                                light: '#ffffff',
+                            },
+                        }, (err, url) => {
+                            if (err) {
+                                console.error('QR generation error:', err);
+                                return;
+                            }
+                            document.getElementById('answerQRImage').src = url;
+                        });
+                    }
+                });
+
+                state.simplePeer.on('connect', () => {
+                    console.log('✅ Manual WebRTC connected');
+                    state.isConnected = true;
+
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('step2').classList.remove('active');
+                    document.getElementById('step3').style.display = 'block';
+                    document.getElementById('step3').classList.add('active');
+
+                    // شغّل الكاميرا تلقائياً للمسح
+                    setTimeout(() => {
+                        activateCamera().catch(err => {
+                            console.error('Camera activation error:', err);
+                        });
+                    }, 500);
+                });
+
+                state.simplePeer.on('data', (data) => {
+                    try {
+                        const msg = JSON.parse(data.toString());
+                        if (msg.type === 'ack') {}
+                    } catch (e) {}
+                });
+
+                state.simplePeer.on('error', (err) => {
+                    console.error('SimplePeer error:', err);
+                    showError('خطأ في الاتصال: ' + err.message);
+                });
+
+                state.simplePeer.signal(decoded);
+
+            } catch (e) {
+                console.error('Manual offer error:', e);
+                showError('تعذر قراءة رمز QR. جرّب مرة أخرى.');
+            }
+        }
+
+        // ============================================================
+        // Camera
+        // ============================================================
+        async function activateCamera() {
+            if (state.html5QrCode) return;
+
+            state.html5QrCode = new Html5Qrcode('reader', {
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                ],
+                verbose: false,
+            });
+
+            const config = {
+                fps: 15,
+                qrbox: (w, h) => {
+                    const minEdge = Math.min(w, h);
+                    const size = Math.floor(minEdge * 0.75);
+                    return { width: size, height: Math.floor(size * 0.6) };
+                },
+                aspectRatio: 1.777,
+            };
+
+            await state.html5QrCode.start(
+                { facingMode: 'environment' },
+                config,
+                onScanSuccess,
+                () => {}
+            );
+        }
+
+        async function startCamera() {
+            loadingText.textContent = 'جاري تشغيل الكاميرا...';
+            try {
+                await activateCamera();
+                loadingOverlay.classList.add('hidden');
+            } catch (err) {
+                console.error('Camera error:', err);
+                showError('تعذر فتح الكاميرا. اسمح بالوصول للكاميرا.');
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            sendBarcode(decodedText);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            try { if (state.html5QrCode) state.html5QrCode.stop(); } catch (e) {}
+            try { if (state.offerScanner) state.offerScanner.stop(); } catch (e) {}
+            try { if (state.connection) state.connection.close(); } catch (e) {}
+            try { if (state.peer) state.peer.destroy(); } catch (e) {}
+            try { if (state.simplePeer) state.simplePeer.destroy(); } catch (e) {}
+        });
+
+        window.addEventListener('load', () => {
+            console.log('🚀 Scan page, mode:', mode);
+
+            if (mode === 'manual') {
+                startManualMode();
+            } else {
+                startAutoMode();
+            }
+        });
+    </script>
+</body>
+</html>
