@@ -167,7 +167,8 @@
 
         <!-- Items Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="table-scroll-wrapper">
+          <!-- Desktop Table (يظهر على الشاشات الكبيرة فقط) -->
+          <div class="hidden md:block table-scroll-wrapper">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="bg-slate-50/70 border-b border-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider">
@@ -186,17 +187,17 @@
               </thead>
               <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
                 <tr v-for="(row, index) in purchaseItems" :key="index" class="hover:bg-slate-50/50 transition-colors group">
-                  <td class="p-3 lg:p-4.5 font-bold text-slate-800">{{ row.medicine_name }}</td>
-                  <td class="p-3 lg:p-4.5"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">{{ row.unit_name }}</span></td>
-                  <td class="p-3 lg:p-4.5 font-mono font-semibold text-slate-700">{{ row.quantity }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono text-slate-500">× {{ row.factor }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono font-semibold text-slate-700">{{ row.base_quantity }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono text-slate-600">{{ formatCurrency(row.buy_price) }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono text-blue-600">{{ formatCurrency(row.buy_price / row.factor) }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono font-bold text-emerald-600">{{ formatCurrency(row.subtotal) }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono text-xs text-slate-500">{{ row.batch_number || '-' }}</td>
-                  <td class="p-3 lg:p-4.5 font-mono text-xs text-slate-500">{{ row.expiry_date || '-' }}</td>
-                  <td class="p-3 lg:p-4.5 text-center">
+                  <td class="p-4.5 font-bold text-slate-800">{{ row.medicine_name }}</td>
+                  <td class="p-4.5"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">{{ row.unit_name }}</span></td>
+                  <td class="p-4.5 font-mono font-semibold text-slate-700">{{ row.quantity }}</td>
+                  <td class="p-4.5 font-mono text-slate-500">× {{ row.factor }}</td>
+                  <td class="p-4.5 font-mono font-semibold text-slate-700">{{ row.base_quantity }}</td>
+                  <td class="p-4.5 font-mono text-slate-600">{{ formatCurrency(row.buy_price) }}</td>
+                  <td class="p-4.5 font-mono text-blue-600">{{ formatCurrency(row.buy_price / row.factor) }}</td>
+                  <td class="p-4.5 font-mono font-bold text-emerald-600">{{ formatCurrency(row.subtotal) }}</td>
+                  <td class="p-4.5 font-mono text-xs text-slate-500">{{ row.batch_number || '-' }}</td>
+                  <td class="p-4.5 font-mono text-xs text-slate-500">{{ row.expiry_date || '-' }}</td>
+                  <td class="p-4.5 text-center">
                     <button @click="removeItem(index)" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-80 group-hover:opacity-100" title="حذف الصنف">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
@@ -206,38 +207,150 @@
               </tbody>
             </table>
           </div>
-        </div>
-
-        <!-- Summary -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="summary-grid">
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الفاتورة</div>
-              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ formatCurrency(subtotal) }}</div>
+        
+          <!-- Mobile Cards (تظهر على الموبايل فقط) -->
+          <div class="md:hidden">
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
+              <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                <i class="fas fa-list text-emerald-600"></i>
+                الأصناف المضافة
+              </h3>
+              <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                {{ purchaseItems.length }}
+              </span>
             </div>
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الخصم</div>
-              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ formatCurrency(purchase.discount) }}</div>
+        
+            <!-- Cards -->
+            <div v-if="purchaseItems.length" class="divide-y divide-slate-100">
+              <div v-for="(row, index) in purchaseItems" :key="index" class="p-4">
+                <!-- اسم الدواء + زر حذف -->
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-slate-800 text-sm leading-tight">{{ row.medicine_name }}</h4>
+                    <span class="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[11px] font-medium">
+                      {{ row.unit_name }}
+                    </span>
+                  </div>
+                  <button @click="removeItem(index)" class="p-2 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors shrink-0" title="حذف">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  </button>
+                </div>
+        
+                <!-- شبكة المعلومات -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="bg-slate-50 rounded-lg p-2">
+                    <div class="text-slate-400 text-[10px] mb-0.5">الكمية</div>
+                    <div class="font-bold text-slate-700 font-mono">{{ row.quantity }}</div>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg p-2">
+                    <div class="text-slate-400 text-[10px] mb-0.5">التحويل</div>
+                    <div class="font-bold text-slate-700 font-mono">× {{ row.factor }}</div>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg p-2">
+                    <div class="text-slate-400 text-[10px] mb-0.5">الكمية الأساسية</div>
+                    <div class="font-bold text-slate-700 font-mono">{{ row.base_quantity }}</div>
+                  </div>
+                  <div class="bg-slate-50 rounded-lg p-2">
+                    <div class="text-slate-400 text-[10px] mb-0.5">سعر الشراء</div>
+                    <div class="font-bold text-slate-700 font-mono">{{ formatCurrency(row.buy_price) }}</div>
+                  </div>
+                  <div class="bg-blue-50 rounded-lg p-2">
+                    <div class="text-blue-500 text-[10px] mb-0.5">سعر الوحدة الأساسية</div>
+                    <div class="font-bold text-blue-700 font-mono">{{ formatCurrency(row.buy_price / row.factor) }}</div>
+                  </div>
+                  <div class="bg-emerald-50 rounded-lg p-2">
+                    <div class="text-emerald-500 text-[10px] mb-0.5">الإجمالي</div>
+                    <div class="font-bold text-emerald-700 font-mono">{{ formatCurrency(row.subtotal) }}</div>
+                  </div>
+                </div>
+        
+                <!-- LOT + EXP -->
+                <div v-if="row.batch_number || row.expiry_date" class="grid grid-cols-2 gap-2 mt-2 text-xs">
+                  <div v-if="row.batch_number" class="bg-amber-50 rounded-lg p-2">
+                    <div class="text-amber-600 text-[10px] mb-0.5">LOT</div>
+                    <div class="font-bold text-amber-800 font-mono text-[11px]">{{ row.batch_number }}</div>
+                  </div>
+                  <div v-if="row.expiry_date" class="bg-rose-50 rounded-lg p-2">
+                    <div class="text-rose-600 text-[10px] mb-0.5">الصلاحية</div>
+                    <div class="font-bold text-rose-800 font-mono text-[11px]">{{ row.expiry_date }}</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الصافي</div>
-              <div class="font-extrabold text-emerald-600 text-xl lg:text-2xl font-mono">{{ formatCurrency(grandTotal) }}</div>
-            </div>
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">عدد الأصناف</div>
-              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ purchaseItems.length }}</div>
-            </div>
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الحبات</div>
-              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ totalBase }}</div>
-            </div>
-            <div class="summary-item">
-              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">متوسط سعر الحبة</div>
-              <div class="font-extrabold text-blue-600 text-lg lg:text-xl font-mono">{{ formatCurrency(grandTotal / (totalBase || 1)) }}</div>
+        
+            <!-- Empty state -->
+            <div v-else class="text-center py-12 px-4">
+              <i class="fas fa-inbox text-4xl text-slate-300 mb-3"></i>
+              <p class="text-slate-400 text-sm">لم يتم إضافة أي أصناف إلى الفاتورة حتى الآن.</p>
             </div>
           </div>
         </div>
-
+        <!-- Summary -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+          <!-- Desktop: 6 أعمدة -->
+          <div class="hidden md:grid grid-cols-3 lg:grid-cols-6 gap-4 p-4 lg:p-6 text-center divide-x divide-x-reverse divide-slate-100">
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الفاتورة</div>
+              <div class="font-extrabold text-slate-800 text-xl font-mono">{{ formatCurrency(subtotal) }}</div>
+            </div>
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الخصم</div>
+              <div class="font-extrabold text-slate-800 text-xl font-mono">{{ formatCurrency(purchase.discount) }}</div>
+            </div>
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الصافي</div>
+              <div class="font-extrabold text-emerald-600 text-2xl font-mono">{{ formatCurrency(grandTotal) }}</div>
+            </div>
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">عدد الأصناف</div>
+              <div class="font-extrabold text-slate-800 text-xl font-mono">{{ purchaseItems.length }}</div>
+            </div>
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الحبات</div>
+              <div class="font-extrabold text-slate-800 text-xl font-mono">{{ totalBase }}</div>
+            </div>
+            <div class="p-2">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">متوسط سعر الحبة</div>
+              <div class="font-extrabold text-blue-600 text-xl font-mono">{{ formatCurrency(grandTotal / (totalBase || 1)) }}</div>
+            </div>
+          </div>
+        
+          <!-- Mobile: بطاقة مخصصة -->
+          <div class="md:hidden">
+            <!-- الإجمالي والصافي (الأهم - في الأعلى) -->
+            <div class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-l from-emerald-50/50 to-white border-b border-slate-100">
+              <div class="text-center">
+                <div class="text-slate-500 text-[11px] font-semibold mb-1">إجمالي الفاتورة</div>
+                <div class="font-extrabold text-slate-800 text-lg font-mono">{{ formatCurrency(subtotal) }}</div>
+              </div>
+              <div class="text-center">
+                <div class="text-emerald-600 text-[11px] font-semibold mb-1">الصافي</div>
+                <div class="font-extrabold text-emerald-600 text-xl font-mono">{{ formatCurrency(grandTotal) }}</div>
+              </div>
+            </div>
+        
+            <!-- باقي التفاصيل -->
+            <div class="grid grid-cols-2 gap-3 p-4">
+              <div class="bg-slate-50 rounded-lg p-3 text-center">
+                <div class="text-slate-400 text-[10px] font-semibold mb-1">الخصم</div>
+                <div class="font-bold text-slate-700 text-base font-mono">{{ formatCurrency(purchase.discount) }}</div>
+              </div>
+              <div class="bg-slate-50 rounded-lg p-3 text-center">
+                <div class="text-slate-400 text-[10px] font-semibold mb-1">عدد الأصناف</div>
+                <div class="font-bold text-slate-700 text-base font-mono">{{ purchaseItems.length }}</div>
+              </div>
+              <div class="bg-slate-50 rounded-lg p-3 text-center">
+                <div class="text-slate-400 text-[10px] font-semibold mb-1">إجمالي الحبات</div>
+                <div class="font-bold text-slate-700 text-base font-mono">{{ totalBase }}</div>
+              </div>
+              <div class="bg-blue-50 rounded-lg p-3 text-center">
+                <div class="text-blue-500 text-[10px] font-semibold mb-1">متوسط سعر الحبة</div>
+                <div class="font-bold text-blue-700 text-base font-mono">{{ formatCurrency(grandTotal / (totalBase || 1)) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- Save -->
         <div class="flex justify-end pt-2">
           <button id="save-purchase-btn" @click="savePurchase" :disabled="saving" class="save-btn bg-emerald-700 hover:bg-emerald-800 active:scale-95 disabled:opacity-55 text-white font-bold px-6 lg:px-10 py-3.5 rounded-xl shadow-xl shadow-emerald-700/20 transition-all duration-150 flex items-center gap-3">
@@ -755,26 +868,6 @@ input:focus, select:focus {
 }
 
 /* ============================================
-   قسم الملخص (6 أعمدة)
-   ============================================ */
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1rem;
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.summary-item {
-  padding: 0.5rem;
-  border-left: 1px solid #f1f5f9;
-}
-
-.summary-item:first-child {
-  border-left: none;
-}
-
-/* ============================================
    الجدول — تمرير أفقي محسّن
    ============================================ */
 .table-scroll-wrapper {
@@ -790,31 +883,23 @@ input:focus, select:focus {
    الموبايل (أقل من 1024px)
    ============================================ */
 @media (max-width: 1023px) {
-  /* الشبكة الرئيسية: عمود واحد */
   .main-grid {
     grid-template-columns: 1fr;
   }
 
-  /* سجل المشتريات: يظهر تحت النموذج */
-  .history-column {
-    position: static !important;
-  }
-
+  .history-column,
   .history-sticky {
     position: static !important;
   }
 
-  /* قسم إضافة الصنف: عمودين */
   .add-item-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* حقل البحث يأخذ صفاً كاملاً */
   .add-item-grid .search-field {
     grid-column: 1 / -1;
   }
 
-  /* معلومات الوحدة: 2×2 */
   .unit-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -822,86 +907,38 @@ input:focus, select:focus {
   .unit-info-grid .add-item-btn {
     grid-column: 1 / -1;
   }
-
-  /* الملخص: 3 أعمدة */
-  .summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    padding: 1rem;
-  }
-
-  .summary-item {
-    border-left: none;
-    border-bottom: 1px solid #f1f5f9;
-  }
 }
 
 /* ============================================
    الموبايل الصغير (أقل من 640px)
    ============================================ */
 @media (max-width: 639px) {
-  /* قسم إضافة الصنف: عمود واحد */
   .add-item-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
 
-  /* معلومات الوحدة: عمود واحد */
   .unit-info-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
 
-  /* الملخص: عمودين */
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    padding: 0.75rem;
-  }
-
-  /* الجدول */
-  .table-scroll-wrapper table {
-    min-width: 900px;
-    font-size: 12px;
-  }
-
-  .table-scroll-wrapper th,
-  .table-scroll-wrapper td {
-    padding: 8px 6px !important;
-  }
-
-  /* زر الحفظ */
   .save-btn {
     width: 100%;
     justify-content: center;
   }
 
-  /* Modal */
   .modal-content {
     max-height: 100vh !important;
     border-radius: 0 !important;
     margin: 0 !important;
   }
 
-  /* Toast */
   .toast-container {
     left: 1rem !important;
     right: 1rem !important;
     transform: none !important;
     max-width: none !important;
-  }
-}
-
-/* ============================================
-   الموبايل الصغير جداً (أقل من 380px)
-   ============================================ */
-@media (max-width: 379px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .add-item-grid {
-    gap: 0.5rem;
   }
 }
 
