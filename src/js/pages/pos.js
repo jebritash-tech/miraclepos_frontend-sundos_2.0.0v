@@ -643,7 +643,7 @@ const app = createApp({
         </div>
 
         <!-- تخطيط الموبايل والتابلت -->
-        <div class="lg:hidden h-[calc(100vh-200px)]">
+        <div class="lg:hidden h-[calc(100dvh-140px)] pb-2">
 
             <div 
                 v-show="activeTab === 'recent'"
@@ -747,9 +747,9 @@ const app = createApp({
             </div>
 
             <div 
-                v-show="activeTab === 'cart'"
-                class="bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col h-full"
-            >
+                    v-show="activeTab === 'cart'"
+                    class="bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col h-full overflow-hidden"
+                >
                 <div class="p-3 sm:p-4 border-b bg-gradient-to-r from-emerald-50 to-blue-50 rounded-t-2xl flex justify-between items-center">
                     <span class="font-bold text-slate-700 text-base sm:text-lg flex items-center gap-2">
                         <i class="fas fa-shopping-cart text-emerald-600"></i> 
@@ -815,7 +815,7 @@ const app = createApp({
                     </div>
                 </div>
 
-                <div class="p-3 sm:p-4 border-t bg-slate-50 rounded-b-2xl">
+                <div class="p-3 sm:p-4 border-t bg-slate-50 rounded-b-2xl flex-shrink-0 safe-area-bottom">
                     <div class="mb-3 flex items-center justify-between flex-wrap gap-2">
                         <span class="text-xs sm:text-sm font-medium">طريقة التحصيل:</span>
                         <div class="flex gap-3 sm:gap-4">
