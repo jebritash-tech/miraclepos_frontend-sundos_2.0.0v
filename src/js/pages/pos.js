@@ -306,12 +306,12 @@ const app = createApp({
                         <i class="fas fa-coins"></i>
                         <span class="hidden sm:inline">مالية</span>
                     </button>
-                
+
                     <!-- Overlay لإغلاق القائمة عند النقر خارجها (للموبايل) -->
                     <div v-if="showFinanceMenu" 
-                         @click="showFinanceMenu=false" 
-                         class="fixed inset-0 z-40 md:hidden"></div>
-                
+                        @click="showFinanceMenu=false" 
+                        class="fixed inset-0 z-40 md:hidden"></div>
+
                     <!-- القائمة المنسدلة -->
                     <transition
                         enter-active-class="transition ease-out duration-200"
@@ -322,7 +322,7 @@ const app = createApp({
                         leave-to-class="opacity-0 scale-95"
                     >
                         <div v-if="showFinanceMenu" 
-                             class="absolute mt-2 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-200
+                            class="absolute mt-2 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-200
                                     w-64
                                     left-0 md:left-0
                                     max-w-[calc(100vw-1rem)] md:max-w-none">
@@ -337,7 +337,7 @@ const app = createApp({
                                     <i class="fas fa-times text-sm"></i>
                                 </button>
                             </div>
-                
+
                             <button @click="showFinanceMenu=false;openExpenseModal()" 
                                     class="w-full text-right px-4 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-3 text-sm md:text-base transition-colors">
                                 <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
@@ -373,7 +373,6 @@ const app = createApp({
                             </button>
                         </div>
                     </transition>
-                </div>
                 </div>
 
                 <div v-if="currentUser" class="hidden lg:block bg-white/10 backdrop-blur-sm rounded-xl px-3 md:px-4 py-1.5 md:py-2 text-right border border-white/20">
