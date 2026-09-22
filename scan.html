@@ -473,7 +473,12 @@
             lastSentCode: '',
             lastSentTime: 0,
         };
+        console.log('📱 Scan page, mode:', mode, 'peer:', peerId);
 
+        if (!peerId && mode === 'auto') {
+            showError('معرّف الاتصال غير موجود في الرابط');
+            return;
+        }
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
         const errorBox = document.getElementById('errorBox');
