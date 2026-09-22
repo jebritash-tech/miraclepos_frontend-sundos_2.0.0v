@@ -306,21 +306,74 @@ const app = createApp({
                         <i class="fas fa-coins"></i>
                         <span class="hidden sm:inline">مالية</span>
                     </button>
-                    <div v-if="showFinanceMenu" class="absolute left-0 mt-2 w-56 md:w-64 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-200">
-                        <button @click="showFinanceMenu=false;openExpenseModal()" class="w-full text-right px-4 md:px-5 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                            <i class="fas fa-receipt text-red-500"></i> إضافة مصروف
-                        </button>
-                        <button @click="showFinanceMenu=false;openWithdrawModal()" class="w-full text-right px-4 md:px-5 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                            <i class="fas fa-hand-holding-usd text-orange-500"></i> سحب نقدي
-                        </button>
-                        <button @click="showFinanceMenu=false;openDebtPaymentModal()" class="w-full text-right px-4 md:px-5 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-2 text-sm md:text-base">
-                            <i class="fas fa-hand-holding-heart text-green-500"></i> سداد دين
-                        </button>
-                        <hr>
-                        <button @click="showFinanceMenu=false;loadShift()" class="w-full text-right px-4 md:px-5 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center gap-2 text-sm md:text-base">
-                            <i class="fas fa-door-closed"></i> إنهاء الوردية
-                        </button>
-                    </div>
+                
+                    <!-- Overlay لإغلاق القائمة عند النقر خارجها (للموبايل) -->
+                    <div v-if="showFinanceMenu" 
+                         @click="showFinanceMenu=false" 
+                         class="fixed inset-0 z-40 md:hidden"></div>
+                
+                    <!-- القائمة المنسدلة -->
+                    <transition
+                        enter-active-class="transition ease-out duration-200"
+                        enter-from-class="opacity-0 scale-95"
+                        enter-to-class="opacity-100 scale-100"
+                        leave-active-class="transition ease-in duration-150"
+                        leave-from-class="opacity-100 scale-100"
+                        leave-to-class="opacity-0 scale-95"
+                    >
+                        <div v-if="showFinanceMenu" 
+                             class="absolute mt-2 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-200
+                                    w-64
+                                    left-0 md:left-0
+                                    max-w-[calc(100vw-1rem)] md:max-w-none">
+                            
+                            <!-- Header للموبايل -->
+                            <div class="md:hidden px-4 py-2.5 bg-gradient-to-l from-yellow-50 to-amber-50 border-b border-amber-200 flex items-center justify-between">
+                                <span class="font-bold text-amber-800 text-sm flex items-center gap-2">
+                                    <i class="fas fa-coins text-amber-600"></i>
+                                    العمليات المالية
+                                </span>
+                                <button @click="showFinanceMenu=false" class="text-slate-400 hover:text-slate-600 p-1">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+                
+                            <button @click="showFinanceMenu=false;openExpenseModal()" 
+                                    class="w-full text-right px-4 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-3 text-sm md:text-base transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-receipt text-red-500 text-sm"></i>
+                                </div>
+                                <span class="flex-1">إضافة مصروف</span>
+                            </button>
+                            
+                            <button @click="showFinanceMenu=false;openWithdrawModal()" 
+                                    class="w-full text-right px-4 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-3 text-sm md:text-base transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-hand-holding-usd text-orange-500 text-sm"></i>
+                                </div>
+                                <span class="flex-1">سحب نقدي</span>
+                            </button>
+                            
+                            <button @click="showFinanceMenu=false;openDebtPaymentModal()" 
+                                    class="w-full text-right px-4 py-3 hover:bg-blue-50 text-gray-700 flex items-center gap-3 text-sm md:text-base transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-hand-holding-heart text-green-500 text-sm"></i>
+                                </div>
+                                <span class="flex-1">سداد دين</span>
+                            </button>
+                            
+                            <hr class="border-slate-100">
+                            
+                            <button @click="showFinanceMenu=false;loadShift()" 
+                                    class="w-full text-right px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold flex items-center gap-3 text-sm md:text-base transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-door-closed text-red-600 text-sm"></i>
+                                </div>
+                                <span class="flex-1">إنهاء الوردية</span>
+                            </button>
+                        </div>
+                    </transition>
+                </div>
                 </div>
 
                 <div v-if="currentUser" class="hidden lg:block bg-white/10 backdrop-blur-sm rounded-xl px-3 md:px-4 py-1.5 md:py-2 text-right border border-white/20">
