@@ -25,6 +25,102 @@
 }
 
 /* ============================================
+   4. الجوال (أقل من 768px)
+   ============================================ */
+@media (max-width: 767px) {
+  /* بطاقات الإحصائيات: بطاقتين في الصف */
+  .cards-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  /* ✅ البطاقات الفرعية: بطاقة واحدة في الصف */
+  .sub-cards {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  /* إلغاء أي امتداد سابق */
+  .sub-cards > .sub-card:nth-child(3) {
+    grid-column: auto;
+  }
+
+  /* صفوف المخططات والجداول: عمود واحد */
+  .row-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    margin-bottom: 18px !important;
+  }
+
+  /* المخططات */
+  .chart-bars {
+    height: auto !important;
+    min-height: 180px;
+  }
+
+  /* الجداول */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap table {
+    min-width: 100%;
+    font-size: 12.5px;
+  }
+
+  /* اللوحات */
+  .panel {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .panel-header {
+    margin-bottom: 12px !important;
+  }
+
+  .panel-header h3 {
+    font-size: 14px !important;
+  }
+
+  /* التمرير الداخلي */
+  .alerts-scroll {
+    max-height: 300px !important;
+  }
+
+  .invoices-scroll {
+    max-height: 340px !important;
+  }
+
+  /* النوافذ */
+  .sale-details-modal,
+  .sdm-modal {
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* ============================================
+   6. التابلت (768px - 1023px)
+   ============================================ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cards-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ✅ على التابلت أيضاً: بطاقة واحدة في الصف */
+  .sub-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  .row-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================
    3. صفوف المخططات والجداول (row-grid)
    ============================================ */
 .row-grid {
