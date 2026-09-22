@@ -4,17 +4,17 @@
     <!-- Offline Overlay -->
     <div
       v-if="showOfflineOverlay"
-      class="fixed inset-0 z-[999999] bg-black/70 backdrop-blur-sm flex items-center justify-center"
+      class="fixed inset-0 z-[999999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-lg text-center">
-        <div class="mb-6">
-          <i class="fas fa-wifi text-red-600 text-7xl"></i>
+      <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-10 max-w-lg w-full text-center">
+        <div class="mb-4 sm:mb-6">
+          <i class="fas fa-wifi text-red-600 text-5xl sm:text-7xl"></i>
         </div>
-        <h1 class="text-3xl font-bold text-red-600 mb-4">لا يوجد اتصال بالإنترنت</h1>
-        <p class="text-slate-600 text-lg mb-6">
+        <h1 class="text-xl sm:text-3xl font-bold text-red-600 mb-3 sm:mb-4">لا يوجد اتصال بالإنترنت</h1>
+        <p class="text-slate-600 text-sm sm:text-lg mb-4 sm:mb-6">
           تعذر الاتصال بالشبكة. يرجى التحقق من الاتصال ثم إعادة المحاولة.
         </p>
-        <div class="inline-flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-3 rounded-lg">
+        <div class="inline-flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-4 sm:px-5 py-2 sm:py-3 rounded-lg text-sm sm:text-base">
           <span class="animate-pulse">●</span>
           انتظار عودة الاتصال...
         </div>
@@ -22,31 +22,40 @@
     </div>
 
     <!-- ===== Sidebar Overlay (للجوال) ===== -->
-    <div
-      v-if="sidebarOpen"
-      @click="closeSidebar"
-      class="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
-    ></div>
+    <transition
+      enter-active-class="transition-opacity duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="sidebarOpen"
+        @click="closeSidebar"
+        class="fixed inset-0 bg-black/60 z-40 lg:hidden"
+      ></div>
+    </transition>
 
     <!-- ===== القائمة الجانبية ===== -->
     <aside
       :class="[
-        'sidebar text-slate-300 flex flex-col shrink-0 select-none h-screen fixed lg:relative z-50 transition-all duration-300 ease-in-out',
-        sidebarOpen ? 'translate-x-0 w-72' : 'translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden'
+        'sidebar text-slate-300 flex flex-col shrink-0 select-none h-screen fixed lg:relative z-50 transition-transform duration-300 ease-in-out w-72 max-w-[85vw]',
+        sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
       ]"
     >
       <!-- زر إغلاق القائمة (للجوال) -->
       <button
         @click="closeSidebar"
-        class="absolute top-4 left-4 lg:hidden text-slate-400 hover:text-white transition z-10"
+        class="absolute top-4 left-4 lg:hidden text-slate-400 hover:text-white transition z-10 w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center"
+        aria-label="إغلاق القائمة"
       >
-        <i class="fas fa-times text-xl"></i>
+        <i class="fas fa-times text-base"></i>
       </button>
 
       <!-- الشعار -->
-      <div class="logo px-5 py-6 flex items-center gap-3 border-b border-slate-800/60">
-        <!-- الشعار (صورة أو أيقونة احتياطية) -->
-        <div class="shrink-0 w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center overflow-hidden">
+      <div class="logo px-4 sm:px-5 py-4 sm:py-6 flex items-center gap-3 border-b border-slate-800/60">
+        <div class="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center overflow-hidden">
           <img
             v-if="pharmacyLogo && !logoFailed"
             :src="pharmacyLogo"
@@ -54,84 +63,77 @@
             alt="شعار الصيدلية"
             class="w-full h-full object-contain"
           />
-          <i v-else class="fas fa-heartbeat text-emerald-400 text-2xl"></i>
+          <i v-else class="fas fa-heartbeat text-emerald-400 text-xl sm:text-2xl"></i>
         </div>
 
-        <!-- الاسم والعنوان -->
         <div class="flex-1 min-w-0">
-          <h1 class="text-white text-lg font-extrabold tracking-wide truncate leading-tight">
+          <h1 class="text-white text-base sm:text-lg font-extrabold tracking-wide truncate leading-tight">
             {{ pharmacyName || 'صيدليتي' }}
           </h1>
           <p
             v-if="pharmacyAddress"
-            class="text-[11px] text-slate-400 truncate mt-1 flex items-center gap-1"
+            class="text-[10px] sm:text-[11px] text-slate-400 truncate mt-1 flex items-center gap-1"
             :title="pharmacyAddress">
             <i class="fas fa-map-marker-alt text-[9px] text-emerald-400/70"></i>
             {{ pharmacyAddress }}
           </p>
-          <p
-            v-else
-            class="text-[11px] text-slate-500 truncate mt-1">
+          <p v-else class="text-[10px] sm:text-[11px] text-slate-500 truncate mt-1">
             نظام إدارة الصيدلية
           </p>
         </div>
       </div>
+
       <!-- القائمة -->
-      <ul class="flex-1 px-4 py-6 space-y-1 overflow-y-auto" style="direction: rtl; overflow-y: auto;">
-        <!-- قسم: الرئيسية -->
+      <ul class="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 overflow-y-auto" style="direction: rtl;">
         <li
           v-for="tab in mainTabs"
           :key="tab.id"
           @click="navigate(tab)"
-          :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
+          :class="['flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
         >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
           <span>{{ tab.name }}</span>
         </li>
 
-        <!-- قسم: إدارة المخزون -->
         <li
           v-for="tab in inventoryTabs"
           :key="tab.id"
           @click="navigate(tab)"
-          :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
+          :class="['flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
         >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
           <span>{{ tab.name }}</span>
         </li>
 
-        <!-- قسم: المالية -->
         <li
           v-for="tab in financeTabs"
           :key="tab.id"
           @click="navigate(tab)"
-          :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
+          :class="['flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
         >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
           <span>{{ tab.name }}</span>
         </li>
 
-        <!-- قسم: الإدارة العامة -->
         <li
           v-for="tab in generalTabs"
           :key="tab.id"
           @click="navigate(tab)"
-          :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
+          :class="['flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
         >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
           <span>{{ tab.name }}</span>
         </li>
 
-        <!-- قسم: التحليلات والدعم -->
         <li
           v-for="tab in supportTabs"
           :key="tab.id"
           @click="navigate(tab)"
-          :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
+          :class="['flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
         >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
@@ -140,56 +142,57 @@
       </ul>
 
       <!-- تسجيل الخروج -->
-      <div class="logout px-6 py-4 flex items-center gap-3 cursor-pointer" @click="logout">
+      <div class="logout px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 cursor-pointer" @click="logout">
         <i class="fas fa-sign-out-alt w-5 text-center"></i>
         <span>تسجيل الخروج</span>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50 min-w-0">
       <!-- شريط علوي مع زر القائمة -->
-      <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center gap-4">
+      <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4">
         <!-- زر Burger Menu -->
         <button
           @click="toggleSidebar"
-          class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition text-slate-700"
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition text-slate-700 shrink-0"
           title="القائمة"
+          aria-label="فتح القائمة"
         >
-          <i :class="sidebarOpen ? 'fas fa-times' : 'fas fa-bars'" class="text-lg"></i>
+          <i :class="sidebarOpen ? 'fas fa-times' : 'fas fa-bars'" class="text-base sm:text-lg"></i>
         </button>
 
         <!-- عنوان الصفحة الحالية -->
-        <h2 class="text-lg font-bold text-slate-800">
+        <h2 class="text-sm sm:text-lg font-bold text-slate-800 truncate">
           {{ currentTabName }}
         </h2>
 
-        <!-- مسافة فارغة -->
         <div class="flex-1"></div>
 
         <!-- اسم المستخدم -->
         <div v-if="adminUser" class="hidden sm:flex items-center gap-2 text-sm text-slate-600">
           <i class="fas fa-user-circle text-slate-400 text-lg"></i>
-          <span>{{ adminUser.name || 'مدير' }}</span>
+          <span class="truncate max-w-[120px]">{{ adminUser.name || 'مدير' }}</span>
         </div>
       </header>
 
-      <div class="p-4 flex-1">
-        <div class="bg-transparent p-0 min-h-[500px]">
+      <!-- محتوى الصفحة -->
+      <div class="p-2 sm:p-4 flex-1 min-w-0">
+        <div class="bg-transparent p-0 min-h-[400px] sm:min-h-[500px] min-w-0">
           <keep-alive>
             <component :is="currentComponent" :key="activeTab"></component>
           </keep-alive>
         </div>
       </div>
 
-      <!-- زر الجولة العائم (Floating Action Button) -->
-      <div class="tour-floating-btn fixed bottom-8 left-8 z-50">
+      <!-- زر الجولة العائم -->
+      <div class="tour-floating-btn fixed bottom-4 left-4 sm:bottom-8 sm:left-8 z-30">
         <button
           @click="startAdminTour"
-          class="bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full w-14 h-14 shadow-xl shadow-blue-600/30 transition-all duration-300 hover:scale-110 hover:shadow-2xl flex items-center justify-center border-2 border-white/20"
+          class="bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full w-12 h-12 sm:w-14 sm:h-14 shadow-xl shadow-blue-600/30 transition-all duration-300 hover:scale-110 hover:shadow-2xl flex items-center justify-center border-2 border-white/20"
           title="جولة إرشادية"
         >
-          <i class="fas fa-compass text-2xl"></i>
+          <i class="fas fa-compass text-xl sm:text-2xl"></i>
         </button>
         <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">جديد</span>
       </div>
@@ -201,29 +204,29 @@
       class="fixed inset-0 z-[9999] bg-white/70 flex items-center justify-center backdrop-blur-sm"
     >
       <div class="flex flex-col items-center">
-        <i class="fas fa-spinner fa-spin text-5xl text-sky-600"></i>
-        <p class="mt-4 font-bold text-slate-700">جاري المعالجة...</p>
+        <i class="fas fa-spinner fa-spin text-4xl sm:text-5xl text-sky-600"></i>
+        <p class="mt-3 sm:mt-4 font-bold text-slate-700 text-sm sm:text-base">جاري المعالجة...</p>
       </div>
     </div>
   </div>
 
   <!-- Toast Notification -->
-  <div v-if="toast.show" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-300"
+  <div v-if="toast.show" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg transition-all duration-300 max-w-[calc(100vw-2rem)] w-auto"
     :class="{
       'bg-emerald-50 border border-emerald-200 text-emerald-800': toast.type === 'success',
       'bg-red-50 border border-red-200 text-red-800': toast.type === 'error',
       'bg-amber-50 border border-amber-200 text-amber-800': toast.type === 'warning',
       'bg-blue-50 border border-blue-200 text-blue-800': toast.type === 'info'
     }">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3">
       <i :class="{
         'fas fa-check-circle text-emerald-500': toast.type === 'success',
         'fas fa-exclamation-circle text-red-500': toast.type === 'error',
         'fas fa-exclamation-triangle text-amber-500': toast.type === 'warning',
         'fas fa-info-circle text-blue-500': toast.type === 'info'
       }"></i>
-      <span class="font-medium">{{ toast.message }}</span>
-      <button @click="toast.show = false" class="mr-4 text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+      <span class="font-medium text-sm sm:text-base">{{ toast.message }}</span>
+      <button @click="toast.show = false" class="mr-2 sm:mr-4 text-slate-400 hover:text-slate-600 shrink-0"><i class="fas fa-times"></i></button>
     </div>
   </div>
 </template>
@@ -281,7 +284,6 @@ savePharmacyInfo({
 });
 const logoFailed = ref(false);
 
-// إذا تغيّر رابط الشعار لاحقاً، أعد تعيين الفلاغ
 watch(pharmacyLogo, () => { logoFailed.value = false; });
 
 // ===== State =====
@@ -291,14 +293,15 @@ const adminUser = ref(null);
 const showOfflineOverlay = ref(!navigator.onLine);
 
 // ===== Sidebar State =====
-const sidebarOpen = ref(true); // مفتوحة افتراضياً على الشاشات الكبيرة
+const sidebarOpen = ref(false);
 
-// كشف حجم الشاشة لضبط الحالة الافتراضية
+const MOBILE_BREAKPOINT = 1024;
+
 const checkScreenSize = () => {
-  if (window.innerWidth < 1024) {
-    sidebarOpen.value = false; // مغلقة على الجوال
+  if (window.innerWidth < MOBILE_BREAKPOINT) {
+    sidebarOpen.value = false;
   } else {
-    sidebarOpen.value = true; // مفتوحة على الديسكتوب
+    sidebarOpen.value = true;
   }
 };
 
@@ -328,7 +331,7 @@ const handleToast = (event) => {
   setTimeout(() => { toast.show = false; }, 4000);
 };
 
-// ===== 2. الآن نمرر دالة تبديل التبويب إلى TourManager =====
+// ===== TourManager =====
 TourManager.setTabSwitcher((tabId) => {
   activeTab.value = tabId;
 });
@@ -355,7 +358,6 @@ const startAdminTour = () => {
   TourManager.startTourByName(tourName);
 };
 
-// ===== بدء جولة الصفحة الحالية =====
 const startPageTour = () => {
   let steps = [];
   let tourName = '';
@@ -381,10 +383,9 @@ const startPageTour = () => {
   TourManager.startTour(tourName, steps);
 };
 
-// ===== عند تغيير التبويب =====
-watch(activeTab, (newTab) => {
-  // إغلاق القائمة الجانبية تلقائياً على الجوال عند التنقل
-  if (window.innerWidth < 1024) {
+// ===== عند تغيير التبويب - إغلاق تلقائي على الجوال =====
+watch(activeTab, () => {
+  if (window.innerWidth < MOBILE_BREAKPOINT) {
     closeSidebar();
   }
 });
@@ -428,7 +429,7 @@ axios.interceptors.response.use(
   }
 );
 
-// ===== Tabs مقسمة حسب الفئات =====
+// ===== Tabs =====
 const mainTabs = [
   { id: 'overview', name: 'الرئيسية', icon: 'fas fa-th-large' }
 ];
@@ -464,7 +465,6 @@ const supportTabs = [
   { id: 'about', name: 'حول النظام', icon: 'fas fa-info-circle' }
 ];
 
-// دمج جميع التبويبات
 const tabs = [
   ...mainTabs,
   ...inventoryTabs,
@@ -558,7 +558,6 @@ const updateGlobalLoading = (event) => {
 
 // ===== Lifecycle =====
 onMounted(async () => {
-  // ضبط حالة القائمة الجانبية حسب حجم الشاشة
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
 
@@ -574,7 +573,6 @@ onMounted(async () => {
     }
   });
 
-  // ✅ حمّل إعدادات الصيدلية أولاً (للعرض الفوري)
   await loadSettings();
   updateConnectionStatus();
   await checkAuth();
@@ -591,15 +589,131 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* يمكنك إضافة أي أنماط خاصة بهذا المكون، لكن معظم الأنماط ستأتي من ملف app.css العام */
-
-/* تحسينات للقائمة الجانبية */
 .sidebar {
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
 }
 
 /* منع التمرير الأفقي */
-html, body {
+:global(html), :global(body) {
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* تحسين التمرير للقائمة */
+.sidebar ul::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar ul::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.sidebar ul::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   تحسينات الاستجابة للجوال
+   ============================================ */
+
+/* على الجوال: جعل المحتوى يأخذ العرض الكامل */
+@media (max-width: 1023px) {
+  /* القائمة الجانبية ثابتة فوق المحتوى */
+  aside.sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100vw;
+  }
+}
+
+/* على الجوال الصغير: تقليل الحشوات */
+@media (max-width: 640px) {
+  /* شريط علوي أكثر إحكاماً */
+  header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* تقليل حشوة المحتوى */
+  main > div.p-2 {
+    padding: 0.5rem;
+  }
+}
+
+/* ============================================
+   تحسينات عامة للبطاقات داخل المكونات الفرعية
+   (تُطبق على العناصر داخل المحتوى)
+   ============================================ */
+:deep(.card),
+:deep([class*="card"]) {
+  max-width: 100%;
+}
+
+/* ضمان عدم تجاوز العناصر للعرض */
+:deep(*) {
+  max-width: 100%;
+}
+
+/* الجداول على الجوال - تمرير أفقي */
+:deep(table) {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+  /* تحسين الشبكات (Grids) على الجوال */
+  :deep(.grid) {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* تحسين المرونة (Flex) على الجوال */
+  :deep(.flex-wrap-mobile) {
+    flex-wrap: wrap;
+  }
+
+  /* تقليل أحجام النصوص الكبيرة */
+  :deep(h1) { font-size: 1.25rem !important; }
+  :deep(h2) { font-size: 1.125rem !important; }
+  :deep(h3) { font-size: 1rem !important; }
+
+  /* الحشوات */
+  :deep(.p-6) { padding: 1rem !important; }
+  :deep(.p-8) { padding: 1.25rem !important; }
+  :deep(.px-6) { padding-left: 1rem !important; padding-right: 1rem !important; }
+  :deep(.py-6) { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+
+  /* الأزرار */
+  :deep(button) {
+    max-width: 100%;
+  }
+
+  /* النوافذ المنبثقة */
+  :deep(.modal),
+  :deep([class*="modal"]) {
+    max-width: calc(100vw - 1rem) !important;
+    margin: 0.5rem !important;
+  }
+}
+
+/* ============================================
+   دعم الشاشات الصغيرة جداً
+   ============================================ */
+@media (max-width: 380px) {
+  aside.sidebar {
+    width: 90vw;
+  }
+
+  header h2 {
+    font-size: 0.8125rem;
+  }
 }
 </style>
