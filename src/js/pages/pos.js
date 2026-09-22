@@ -1446,9 +1446,9 @@ const app = createApp({
         </div>
     </div>
 
-    <footer class="text-center p-2 sm:p-3 text-slate-400 border-t bg-white text-[10px] sm:text-xs">
-        <p>MiraclePOS v2.0 | إدارة الصيدليات</p>
-    </footer>
+     // <footer class="text-center p-2 sm:p-3 text-slate-400 border-t bg-white text-[10px] sm:text-xs">
+    //     <p>MiraclePOS v2.0 | إدارة الصيدليات</p>
+    // </footer>
 `,
 
     setup() {
