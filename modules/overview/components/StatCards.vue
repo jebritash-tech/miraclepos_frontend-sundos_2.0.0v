@@ -63,13 +63,8 @@ defineProps(['stats']);
 defineEmits(['card-click']);
 const formatCurrency = (v) => Number(v || 0).toLocaleString();
 </script>
-<style scoped>
-/* ✅ لا حاجة لـ z-index هنا — إزالته تمنع تداخل الطبقات مع قائمة البحث */
-.cards-row {
-  position: relative;
-  /* z-index: 9000; ← تمت إزالته لأنه كان يسبب ظهور القائمة خلف البطاقات */
-}
 
+<style scoped>
 .stat-card.clickable {
   cursor: pointer;
   position: relative;
