@@ -1,9 +1,9 @@
 <!-- modules/medicines/purchase.vue -->
 <template>
-  <div class="p-6 lg:p-8 space-y-8 bg-slate-50/50 min-h-screen" dir="rtl">
+  <div class="p-4 lg:p-8 space-y-6 lg:space-y-8 bg-slate-50/50 min-h-screen" dir="rtl">
     <!-- ================= Header ================= -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-200 hover:shadow-md">
-      <div class="px-8 py-6 border-b border-slate-100 bg-gradient-to-l from-slate-50/50 to-white">
+      <div class="px-4 py-4 lg:px-8 lg:py-6 border-b border-slate-100 bg-gradient-to-l from-slate-50/50 to-white header-padding">
         <div class="flex items-center gap-3">
           <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11,13 +11,13 @@
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-extrabold text-slate-800 tracking-tight">شراء مخزون جديد</h2>
-            <p class="text-sm text-slate-500 mt-0.5">إنشاء فاتورة شراء جديدة وإضافة دفعات المخزون.</p>
+            <h2 class="text-lg lg:text-xl font-extrabold text-slate-800 tracking-tight">شراء مخزون جديد</h2>
+            <p class="text-xs lg:text-sm text-slate-500 mt-0.5">إنشاء فاتورة شراء جديدة وإضافة دفعات المخزون.</p>
           </div>
         </div>
       </div>
-      <div class="p-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      <div class="p-4 lg:p-8 section-padding">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6">
           <div class="space-y-1.5">
             <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">المورد</label>
             <select v-model="purchase.supplier_id" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
@@ -44,7 +44,7 @@
             <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الخصم</label>
             <input type="number" step="0.01" v-model="purchase.discount" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
           </div>
-          <div class="space-y-1.5">
+          <div class="space-y-1.5 sm:col-span-2 lg:col-span-3 xl:col-span-1">
             <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">ملاحظات</label>
             <input v-model="purchase.notes" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400" placeholder="اختياري">
           </div>
@@ -53,18 +53,18 @@
     </div>
 
     <!-- ================= Main Content: 80% Add Item + 20% History ================= -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 main-grid">
       <!-- ===== 80% - Add Item Section ===== -->
       <div class="lg:col-span-4 space-y-6">
         <!-- Add Item -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div class="px-8 py-5 border-b border-slate-100 bg-gradient-to-l from-slate-50/50 to-white flex items-center justify-between">
+          <div class="px-4 py-4 lg:px-8 lg:py-5 border-b border-slate-100 bg-gradient-to-l from-slate-50/50 to-white flex items-center justify-between header-padding">
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> إضافة صنف</h3>
           </div>
-          <div class="p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="p-4 lg:p-8 section-padding">
+            <div class="add-item-grid">
               <!-- البحث -->
-              <div class="lg:col-span-4 relative space-y-1.5">
+              <div class="relative space-y-1.5 search-field">
                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">ابحث باسم الدواء أو باركود الوحدة</label>
                 <div class="relative">
                   <input v-model="search" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400" placeholder="ابدأ بكتابة اسم الدواء...">
@@ -78,7 +78,7 @@
               </div>
 
               <!-- الوحدة -->
-              <div class="lg:col-span-2 space-y-1.5">
+              <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الوحدة</label>
                 <select v-model="item.unit_id" @change="changeUnit" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
                   <option value="">اختر الوحدة</option>
@@ -89,19 +89,19 @@
               <!-- الكمية -->
               <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الكمية</label>
-                <input style="min-width: 60px;" type="number" min="1" v-model.number="item.quantity" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                <input type="number" min="1" v-model.number="item.quantity" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
               </div>
 
-              <!-- السعر (سعر الوحدة المختارة) -->
+              <!-- السعر -->
               <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">سعر الشراء (للوحدة المختارة)</label>
-                <input style="min-width: 60px;" type="number" step="0.01" v-model.number="item.buy_price" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">سعر الشراء</label>
+                <input type="number" step="0.01" v-model.number="item.buy_price" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
               </div>
 
-              <!-- سعر الوحدة الأساسية (يُحسب تلقائياً) -->
+              <!-- سعر الوحدة الأساسية -->
               <div class="space-y-1.5">
                 <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">سعر الوحدة الأساسية</label>
-                <input style="min-width: 60px;" type="number" step="0.01" :value="baseUnitPrice" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed">
+                <input type="number" step="0.01" :value="baseUnitPrice" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed">
               </div>
 
               <!-- LOT -->
@@ -118,8 +118,8 @@
             </div>
 
             <!-- معلومات الوحدة -->
-            <div v-if="selectedUnit" class="mt-6 bg-slate-50/70 border border-slate-200/60 rounded-2xl p-5">
-              <div class="grid grid-cols-2 md:grid-cols-5 gap-6 items-center text-center md:text-right">
+            <div v-if="selectedUnit" class="mt-6 bg-slate-50/70 border border-slate-200/60 rounded-2xl p-4 lg:p-5">
+              <div class="unit-info-grid text-center md:text-right">
                 <div class="p-3 bg-white rounded-xl shadow-sm border border-slate-100">
                   <div class="text-slate-400 text-xs font-medium mb-1">معامل التحويل</div>
                   <div class="font-bold text-slate-700 text-lg font-mono">× {{ selectedUnit.factor }}</div>
@@ -136,7 +136,7 @@
                   <div class="text-slate-400 text-xs font-medium mb-1">الوحدة الأساسية</div>
                   <div class="font-bold text-slate-700 text-base">{{ getBaseUnitName }}</div>
                 </div>
-                <div class="flex items-center justify-center md:justify-end">
+                <div class="flex items-center justify-center md:justify-end add-item-btn">
                   <button @click="addItem" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-medium px-8 py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all duration-150 flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     إضافة الصنف
@@ -144,8 +144,9 @@
                 </div>
               </div>
             </div>
+
             <div v-if="selectedMedicine" class="mt-4 bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <div class="text-xs text-slate-500 mb-1">قاعدة التسعير</div>
                   <div class="font-bold text-blue-700">{{ selectedMedicine.pricing_rule?.name || 'القاعدة الافتراضية' }}</div>
@@ -166,36 +167,36 @@
 
         <!-- Items Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="overflow-x-auto">
+          <div class="table-scroll-wrapper">
             <table class="w-full text-right border-collapse">
               <thead>
                 <tr class="bg-slate-50/70 border-b border-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider">
-                  <th class="p-4.5">الدواء</th>
-                  <th class="p-4.5">الوحدة</th>
-                  <th class="p-4.5">الكمية</th>
-                  <th class="p-4.5">التحويل</th>
-                  <th class="p-4.5">الكمية الأساسية</th>
-                  <th class="p-4.5">سعر الشراء</th>
-                  <th class="p-4.5">سعر الوحدة الأساسية</th>
-                  <th class="p-4.5">الإجمالي</th>
-                  <th class="p-4.5">LOT</th>
-                  <th class="p-4.5">الصلاحية</th>
-                  <th class="p-4.5 text-center">إجراء</th>
+                  <th class="p-3 lg:p-4.5">الدواء</th>
+                  <th class="p-3 lg:p-4.5">الوحدة</th>
+                  <th class="p-3 lg:p-4.5">الكمية</th>
+                  <th class="p-3 lg:p-4.5">التحويل</th>
+                  <th class="p-3 lg:p-4.5">الكمية الأساسية</th>
+                  <th class="p-3 lg:p-4.5">سعر الشراء</th>
+                  <th class="p-3 lg:p-4.5">سعر الوحدة الأساسية</th>
+                  <th class="p-3 lg:p-4.5">الإجمالي</th>
+                  <th class="p-3 lg:p-4.5">LOT</th>
+                  <th class="p-3 lg:p-4.5">الصلاحية</th>
+                  <th class="p-3 lg:p-4.5 text-center">إجراء</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
                 <tr v-for="(row, index) in purchaseItems" :key="index" class="hover:bg-slate-50/50 transition-colors group">
-                  <td class="p-4.5 font-bold text-slate-800">{{ row.medicine_name }}</td>
-                  <td class="p-4.5"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">{{ row.unit_name }}</span></td>
-                  <td class="p-4.5 font-mono font-semibold text-slate-700">{{ row.quantity }}</td>
-                  <td class="p-4.5 font-mono text-slate-500">× {{ row.factor }}</td>
-                  <td class="p-4.5 font-mono font-semibold text-slate-700">{{ row.base_quantity }}</td>
-                  <td class="p-4.5 font-mono text-slate-600">{{ formatCurrency(row.buy_price) }}</td>
-                  <td class="p-4.5 font-mono text-blue-600">{{ formatCurrency(row.buy_price / row.factor) }}</td>
-                  <td class="p-4.5 font-mono font-bold text-emerald-600">{{ formatCurrency(row.subtotal) }}</td>
-                  <td class="p-4.5 font-mono text-xs text-slate-500">{{ row.batch_number || '-' }}</td>
-                  <td class="p-4.5 font-mono text-xs text-slate-500">{{ row.expiry_date || '-' }}</td>
-                  <td class="p-4.5 text-center">
+                  <td class="p-3 lg:p-4.5 font-bold text-slate-800">{{ row.medicine_name }}</td>
+                  <td class="p-3 lg:p-4.5"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">{{ row.unit_name }}</span></td>
+                  <td class="p-3 lg:p-4.5 font-mono font-semibold text-slate-700">{{ row.quantity }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono text-slate-500">× {{ row.factor }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono font-semibold text-slate-700">{{ row.base_quantity }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono text-slate-600">{{ formatCurrency(row.buy_price) }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono text-blue-600">{{ formatCurrency(row.buy_price / row.factor) }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono font-bold text-emerald-600">{{ formatCurrency(row.subtotal) }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono text-xs text-slate-500">{{ row.batch_number || '-' }}</td>
+                  <td class="p-3 lg:p-4.5 font-mono text-xs text-slate-500">{{ row.expiry_date || '-' }}</td>
+                  <td class="p-3 lg:p-4.5 text-center">
                     <button @click="removeItem(index)" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-80 group-hover:opacity-100" title="حذف الصنف">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
@@ -209,19 +210,37 @@
 
         <!-- Summary -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="grid grid-cols-2 md:grid-cols-6 gap-6 p-6 text-center divide-x divide-x-reverse divide-slate-100">
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الفاتورة</div><div class="font-extrabold text-slate-800 text-xl font-mono">{{ formatCurrency(subtotal) }}</div></div>
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الخصم</div><div class="font-extrabold text-slate-800 text-xl font-mono">{{ formatCurrency(purchase.discount) }}</div></div>
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الصافي</div><div class="font-extrabold text-emerald-600 text-2xl font-mono">{{ formatCurrency(grandTotal) }}</div></div>
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">عدد الأصناف</div><div class="font-extrabold text-slate-800 text-xl font-mono">{{ purchaseItems.length }}</div></div>
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الحبات</div><div class="font-extrabold text-slate-800 text-xl font-mono">{{ totalBase }}</div></div>
-            <div class="p-2"><div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">متوسط سعر الحبة</div><div class="font-extrabold text-blue-600 text-xl font-mono">{{ formatCurrency(grandTotal / (totalBase || 1)) }}</div></div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الفاتورة</div>
+              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ formatCurrency(subtotal) }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الخصم</div>
+              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ formatCurrency(purchase.discount) }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">الصافي</div>
+              <div class="font-extrabold text-emerald-600 text-xl lg:text-2xl font-mono">{{ formatCurrency(grandTotal) }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">عدد الأصناف</div>
+              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ purchaseItems.length }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">إجمالي الحبات</div>
+              <div class="font-extrabold text-slate-800 text-lg lg:text-xl font-mono">{{ totalBase }}</div>
+            </div>
+            <div class="summary-item">
+              <div class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">متوسط سعر الحبة</div>
+              <div class="font-extrabold text-blue-600 text-lg lg:text-xl font-mono">{{ formatCurrency(grandTotal / (totalBase || 1)) }}</div>
+            </div>
           </div>
         </div>
 
         <!-- Save -->
         <div class="flex justify-end pt-2">
-          <button id="save-purchase-btn" @click="savePurchase" :disabled="saving" class="bg-emerald-700 hover:bg-emerald-800 active:scale-95 disabled:opacity-55 text-white font-bold px-10 py-3.5 rounded-xl shadow-xl shadow-emerald-700/20 transition-all duration-150 flex items-center gap-3">
+          <button id="save-purchase-btn" @click="savePurchase" :disabled="saving" class="save-btn bg-emerald-700 hover:bg-emerald-800 active:scale-95 disabled:opacity-55 text-white font-bold px-6 lg:px-10 py-3.5 rounded-xl shadow-xl shadow-emerald-700/20 transition-all duration-150 flex items-center gap-3">
             <svg v-if="!saving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             <svg v-else class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             {{ saving ? "جارى الحفظ..." : "حفظ الفاتورة" }}
@@ -230,8 +249,8 @@
       </div>
 
       <!-- ===== 20% - Purchases History ===== -->
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-6">
+      <div class="lg:col-span-1 history-column">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden lg:sticky lg:top-6 history-sticky">
           <div class="border-b border-slate-100 p-4 bg-gradient-to-l from-slate-50/50 to-white">
             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
               <i class="fas fa-history text-emerald-600"></i>
@@ -246,7 +265,7 @@
           </div>
 
           <!-- History List -->
-          <div class="max-h-[500px] overflow-y-auto divide-y divide-slate-100">
+          <div class="max-h-[300px] lg:max-h-[500px] overflow-y-auto divide-y divide-slate-100">
             <div v-if="loadingHistory" class="p-8 text-center text-slate-400 text-sm">جاري التحميل...</div>
             <div v-else-if="filteredHistory.length === 0" class="p-8 text-center text-slate-400 text-sm">لا توجد مشتريات سابقة</div>
             <div
@@ -289,75 +308,77 @@
     </div>
 
     <!-- ================= Purchase Details Modal ================= -->
-    <div v-if="showDetailsModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div v-if="showDetailsModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 lg:p-4">
+      <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] lg:max-h-[90vh] overflow-hidden flex flex-col">
         <div class="flex justify-between items-center border-b border-slate-100 p-4 bg-gradient-to-l from-slate-50/50 to-white">
-          <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <h3 class="text-base lg:text-lg font-bold text-slate-800 flex items-center gap-2">
             <i class="fas fa-file-invoice text-emerald-600"></i>
             تفاصيل الفاتورة #{{ selectedPurchase?.id }}
           </h3>
-          <button @click="showDetailsModal = false" class="text-slate-400 hover:text-slate-600">
+          <button @click="showDetailsModal = false" class="text-slate-400 hover:text-slate-600 p-1">
             <i class="fas fa-times text-xl"></i>
           </button>
         </div>
-        <div class="p-6 overflow-y-auto flex-1">
+        <div class="p-4 lg:p-6 overflow-y-auto flex-1">
           <!-- Supplier & Date Info -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-slate-50 rounded-xl p-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-6">
+            <div class="bg-slate-50 rounded-xl p-3 lg:p-4">
               <p class="text-xs text-slate-400">المورد</p>
-              <p class="font-bold text-slate-800">{{ selectedPurchase?.supplier?.name || 'غير محدد' }}</p>
+              <p class="font-bold text-slate-800 text-sm lg:text-base">{{ selectedPurchase?.supplier?.name || 'غير محدد' }}</p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4">
+            <div class="bg-slate-50 rounded-xl p-3 lg:p-4">
               <p class="text-xs text-slate-400">رقم الفاتورة</p>
-              <p class="font-bold text-slate-800">{{ selectedPurchase?.invoice_number || '-' }}</p>
+              <p class="font-bold text-slate-800 text-sm lg:text-base">{{ selectedPurchase?.invoice_number || '-' }}</p>
             </div>
-            <div class="bg-slate-50 rounded-xl p-4">
+            <div class="bg-slate-50 rounded-xl p-3 lg:p-4">
               <p class="text-xs text-slate-400">التاريخ</p>
-              <p class="font-bold text-slate-800">{{ new Date(selectedPurchase?.created_at).toLocaleDateString('ar') }}</p>
+              <p class="font-bold text-slate-800 text-sm lg:text-base">{{ new Date(selectedPurchase?.created_at).toLocaleDateString('ar') }}</p>
             </div>
-            <div class="bg-emerald-50 rounded-xl p-4">
+            <div class="bg-emerald-50 rounded-xl p-3 lg:p-4">
               <p class="text-xs text-emerald-600">الإجمالي</p>
-              <p class="font-bold text-emerald-700">{{ formatCurrency(selectedPurchase?.total_amount || 0) }}</p>
+              <p class="font-bold text-emerald-700 text-sm lg:text-base">{{ formatCurrency(selectedPurchase?.total_amount || 0) }}</p>
             </div>
           </div>
 
           <!-- Items Table with Base Unit Price -->
           <div class="border rounded-xl overflow-hidden">
-            <table class="w-full text-right text-sm">
-              <thead class="bg-slate-50">
-                <tr class="text-slate-600 text-xs font-bold uppercase tracking-wider">
-                  <th class="p-3">الدواء</th>
-                  <th class="p-3">الوحدة</th>
-                  <th class="p-3">الكمية</th>
-                  <th class="p-3">سعر الوحدة الأساسية</th>
-                  <th class="p-3">الإجمالي</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-for="item in selectedPurchase?.items || []" :key="item.id" class="hover:bg-slate-50/60">
-                  <td class="p-3 font-semibold">{{ item.medicine?.name || 'غير معروف' }}</td>
-                  <td class="p-3 text-slate-600">{{ item.unit_name || '-' }}</td>
-                  <td class="p-3 font-mono">{{ item.quantity }}</td>
-                  <td class="p-3 font-mono text-blue-600">
-                    {{ formatCurrency((item.buy_price || 0) / (item.factor || 1)) }}
-                  </td>
-                  <td class="p-3 font-bold text-emerald-600">{{ formatCurrency((item.buy_price || 0) * item.quantity) }}</td>
-                </tr>
-              </tbody>
-              <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200">
-                <tr>
-                  <td colspan="4" class="p-3 text-left text-slate-600">الإجمالي الكلي</td>
-                  <td class="p-3 text-emerald-700 text-lg">{{ formatCurrency(selectedPurchase?.total_amount || 0) }}</td>
-                </tr>
-              </tfoot>
-            </table>
+            <div class="table-scroll-wrapper">
+              <table class="w-full text-right text-sm">
+                <thead class="bg-slate-50">
+                  <tr class="text-slate-600 text-xs font-bold uppercase tracking-wider">
+                    <th class="p-3">الدواء</th>
+                    <th class="p-3">الوحدة</th>
+                    <th class="p-3">الكمية</th>
+                    <th class="p-3">سعر الوحدة الأساسية</th>
+                    <th class="p-3">الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="item in selectedPurchase?.items || []" :key="item.id" class="hover:bg-slate-50/60">
+                    <td class="p-3 font-semibold">{{ item.medicine?.name || 'غير معروف' }}</td>
+                    <td class="p-3 text-slate-600">{{ item.unit_name || '-' }}</td>
+                    <td class="p-3 font-mono">{{ item.quantity }}</td>
+                    <td class="p-3 font-mono text-blue-600">
+                      {{ formatCurrency((item.buy_price || 0) / (item.factor || 1)) }}
+                    </td>
+                    <td class="p-3 font-bold text-emerald-600">{{ formatCurrency((item.buy_price || 0) * item.quantity) }}</td>
+                  </tr>
+                </tbody>
+                <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200">
+                  <tr>
+                    <td colspan="4" class="p-3 text-left text-slate-600">الإجمالي الكلي</td>
+                    <td class="p-3 text-emerald-700 text-lg">{{ formatCurrency(selectedPurchase?.total_amount || 0) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Toast Notification -->
-    <div v-if="toast.show" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-300"
+    <div v-if="toast.show" class="toast-container fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] px-4 lg:px-6 py-3 lg:py-4 rounded-xl shadow-lg transition-all duration-300"
       :class="{
         'bg-emerald-50 border border-emerald-200 text-emerald-800': toast.type === 'success',
         'bg-red-50 border border-red-200 text-red-800': toast.type === 'error',
@@ -369,8 +390,8 @@
           'fas fa-exclamation-circle text-red-500': toast.type === 'error',
           'fas fa-exclamation-triangle text-amber-500': toast.type === 'warning'
         }"></i>
-        <span class="font-medium">{{ toast.message }}</span>
-        <button @click="toast.show = false" class="mr-4 text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+        <span class="font-medium text-sm lg:text-base">{{ toast.message }}</span>
+        <button @click="toast.show = false" class="mr-2 lg:mr-4 text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
       </div>
     </div>
   </div>
@@ -688,7 +709,6 @@ onMounted(async () => {
       try {
         const data = JSON.parse(searchData);
         if (data.type === 'فاتورة شراء') {
-          // البحث عن الفاتورة وعرضها في نافذة التفاصيل
           const purchase = purchases.value.find(p => p.id === data.id);
           if (purchase) {
             selectPurchase(purchase);
@@ -704,5 +724,199 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* أنماط إضافية حسب الحاجة */
+/* ============================================
+   تحسينات الحقول والمدخلات
+   ============================================ */
+input, select, textarea {
+  font-size: 14px;
+}
+
+input:focus, select:focus {
+  outline: none;
+}
+
+/* ============================================
+   قسم إضافة الصنف — تحسين الشبكة
+   ============================================ */
+.add-item-grid {
+  display: grid;
+  grid-template-columns: 4fr 2fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ============================================
+   قسم معلومات الوحدة (5 أعمدة)
+   ============================================ */
+.unit-info-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+/* ============================================
+   قسم الملخص (6 أعمدة)
+   ============================================ */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.summary-item {
+  padding: 0.5rem;
+  border-left: 1px solid #f1f5f9;
+}
+
+.summary-item:first-child {
+  border-left: none;
+}
+
+/* ============================================
+   الجدول — تمرير أفقي محسّن
+   ============================================ */
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-wrapper table {
+  min-width: 1000px;
+}
+
+/* ============================================
+   الموبايل (أقل من 1024px)
+   ============================================ */
+@media (max-width: 1023px) {
+  /* الشبكة الرئيسية: عمود واحد */
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* سجل المشتريات: يظهر تحت النموذج */
+  .history-column {
+    position: static !important;
+  }
+
+  .history-sticky {
+    position: static !important;
+  }
+
+  /* قسم إضافة الصنف: عمودين */
+  .add-item-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* حقل البحث يأخذ صفاً كاملاً */
+  .add-item-grid .search-field {
+    grid-column: 1 / -1;
+  }
+
+  /* معلومات الوحدة: 2×2 */
+  .unit-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .unit-info-grid .add-item-btn {
+    grid-column: 1 / -1;
+  }
+
+  /* الملخص: 3 أعمدة */
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .summary-item {
+    border-left: none;
+    border-bottom: 1px solid #f1f5f9;
+  }
+}
+
+/* ============================================
+   الموبايل الصغير (أقل من 640px)
+   ============================================ */
+@media (max-width: 639px) {
+  /* قسم إضافة الصنف: عمود واحد */
+  .add-item-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* معلومات الوحدة: عمود واحد */
+  .unit-info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* الملخص: عمودين */
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  /* الجدول */
+  .table-scroll-wrapper table {
+    min-width: 900px;
+    font-size: 12px;
+  }
+
+  .table-scroll-wrapper th,
+  .table-scroll-wrapper td {
+    padding: 8px 6px !important;
+  }
+
+  /* زر الحفظ */
+  .save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal */
+  .modal-content {
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Toast */
+  .toast-container {
+    left: 1rem !important;
+    right: 1rem !important;
+    transform: none !important;
+    max-width: none !important;
+  }
+}
+
+/* ============================================
+   الموبايل الصغير جداً (أقل من 380px)
+   ============================================ */
+@media (max-width: 379px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .add-item-grid {
+    gap: 0.5rem;
+  }
+}
+
+/* ============================================
+   تحسينات عامة
+   ============================================ */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+.min-h-screen {
+  overflow-x: hidden;
+}
 </style>
