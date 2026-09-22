@@ -2410,13 +2410,20 @@ const app = createApp({
                 ]);
 
                 if (hasCloud) {
-                    console.log('✅ PeerJS Cloud available — using Online mode');
-                    scannerMode.value = 'peerjs';
-                    scannerStatus.value = 'online-mode';
-                    await startPeerJSScanner();
-                } else {
-                    console.log('⚠️ PeerJS Cloud unavailable — falling back to Manual mode');
-
+                        console.log('✅ PeerJS Cloud available — using Online mode');
+                        scannerMode.value = 'peerjs';
+                        scannerStatus.value = 'online-mode';
+                        await startPeerJSScanner();
+                    } else {
+                        console.warn('⚠️ PeerJS Cloud unavailable — falling back to Manual mode');
+                        
+                        // ✅ أظهر للمستخدم سبباً واضحاً
+                        showAlert(
+                            'تعذر الاتصال بـ PeerJS Cloud. سيتم استخدام الوضع اليدوي.',
+                            'warning'
+                        );
+                        
+                    }
                     if (typeof window.SimplePeer !== 'function') {
                         scannerError.value = 'مكتبة الاتصال غير محمّلة';
                         scannerStatus.value = 'error';
