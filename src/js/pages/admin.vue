@@ -21,8 +21,28 @@
       </div>
     </div>
 
+    <!-- ===== Sidebar Overlay (للجوال) ===== -->
+    <div
+      v-if="sidebarOpen"
+      @click="closeSidebar"
+      class="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
+    ></div>
+
     <!-- ===== القائمة الجانبية ===== -->
-    <aside class="sidebar w-72 text-slate-300 flex flex-col shrink-0 select-none h-screen">
+    <aside
+      :class="[
+        'sidebar text-slate-300 flex flex-col shrink-0 select-none h-screen fixed lg:relative z-50 transition-all duration-300 ease-in-out',
+        sidebarOpen ? 'translate-x-0 w-72' : 'translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden'
+      ]"
+    >
+      <!-- زر إغلاق القائمة (للجوال) -->
+      <button
+        @click="closeSidebar"
+        class="absolute top-4 left-4 lg:hidden text-slate-400 hover:text-white transition z-10"
+      >
+        <i class="fas fa-times text-xl"></i>
+      </button>
+
       <!-- الشعار -->
       <div class="logo px-5 py-6 flex items-center gap-3 border-b border-slate-800/60">
         <!-- الشعار (صورة أو أيقونة احتياطية) -->
@@ -59,9 +79,6 @@
       <!-- القائمة -->
       <ul class="flex-1 px-4 py-6 space-y-1 overflow-y-auto" style="direction: rtl; overflow-y: auto;">
         <!-- قسم: الرئيسية -->
-        <!-- <li class="pt-4 pb-2 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          الرئيسية
-        </li> -->
         <li
           v-for="tab in mainTabs"
           :key="tab.id"
@@ -74,9 +91,6 @@
         </li>
 
         <!-- قسم: إدارة المخزون -->
-        <!-- <li class="pt-6 pb-2 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          إدارة المخزون
-        </li> -->
         <li
           v-for="tab in inventoryTabs"
           :key="tab.id"
@@ -89,9 +103,6 @@
         </li>
 
         <!-- قسم: المالية -->
-        <!-- <li class="pt-6 pb-2 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          المالية
-        </li> -->
         <li
           v-for="tab in financeTabs"
           :key="tab.id"
@@ -104,9 +115,6 @@
         </li>
 
         <!-- قسم: الإدارة العامة -->
-        <!-- <li class="pt-6 pb-2 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          الإدارة العامة
-        </li> -->
         <li
           v-for="tab in generalTabs"
           :key="tab.id"
@@ -119,21 +127,16 @@
         </li>
 
         <!-- قسم: التحليلات والدعم -->
-        <!-- <li class="pt-6 pb-2 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          التحليلات والدعم
-        </li> -->
         <li
           v-for="tab in supportTabs"
           :key="tab.id"
           @click="navigate(tab)"
           :class="['flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium cursor-pointer',
             activeTab === tab.id ? 'active' : '']"
-          >
+        >
           <i :class="[tab.icon, 'w-5 text-center']"></i>
           <span>{{ tab.name }}</span>
         </li>
-        
-        
       </ul>
 
       <!-- تسجيل الخروج -->
@@ -145,6 +148,32 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50">
+      <!-- شريط علوي مع زر القائمة -->
+      <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center gap-4">
+        <!-- زر Burger Menu -->
+        <button
+          @click="toggleSidebar"
+          class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition text-slate-700"
+          title="القائمة"
+        >
+          <i :class="sidebarOpen ? 'fas fa-times' : 'fas fa-bars'" class="text-lg"></i>
+        </button>
+
+        <!-- عنوان الصفحة الحالية -->
+        <h2 class="text-lg font-bold text-slate-800">
+          {{ currentTabName }}
+        </h2>
+
+        <!-- مسافة فارغة -->
+        <div class="flex-1"></div>
+
+        <!-- اسم المستخدم -->
+        <div v-if="adminUser" class="hidden sm:flex items-center gap-2 text-sm text-slate-600">
+          <i class="fas fa-user-circle text-slate-400 text-lg"></i>
+          <span>{{ adminUser.name || 'مدير' }}</span>
+        </div>
+      </header>
+
       <div class="p-4 flex-1">
         <div class="bg-transparent p-0 min-h-[500px]">
           <keep-alive>
@@ -200,7 +229,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed,watch, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import pinia from '../stores/index.js';
 import axios from 'axios';
 import { API_BASE } from '../config.js';
@@ -239,9 +268,10 @@ import {
   pharmacyLogo,
   pharmacyAddress,
 } from '../settings.js';
+
 // أمثلة
 const info = getPharmacyInfo();
-console.log(info); // { name, phone, address, taxNumber }
+console.log(info);
 
 savePharmacyInfo({
   name: 'صيدلية التلال',
@@ -253,12 +283,39 @@ const logoFailed = ref(false);
 
 // إذا تغيّر رابط الشعار لاحقاً، أعد تعيين الفلاغ
 watch(pharmacyLogo, () => { logoFailed.value = false; });
+
 // ===== State =====
 const activeTab = ref('overview');
 const globalLoading = ref(false);
 const adminUser = ref(null);
 const showOfflineOverlay = ref(!navigator.onLine);
 
+// ===== Sidebar State =====
+const sidebarOpen = ref(true); // مفتوحة افتراضياً على الشاشات الكبيرة
+
+// كشف حجم الشاشة لضبط الحالة الافتراضية
+const checkScreenSize = () => {
+  if (window.innerWidth < 1024) {
+    sidebarOpen.value = false; // مغلقة على الجوال
+  } else {
+    sidebarOpen.value = true; // مفتوحة على الديسكتوب
+  }
+};
+
+const toggleSidebar = () => {
+  sidebarOpen.value = !sidebarOpen.value;
+};
+
+const closeSidebar = () => {
+  sidebarOpen.value = false;
+};
+
+// ===== اسم التبويب الحالي =====
+const currentTabName = computed(() => {
+  const allTabs = [...mainTabs, ...inventoryTabs, ...financeTabs, ...generalTabs, ...supportTabs];
+  const tab = allTabs.find(t => t.id === activeTab.value);
+  return tab ? tab.name : 'الرئيسية';
+});
 
 // ===== Toast =====
 const toast = reactive({ show: false, message: '', type: 'success' });
@@ -270,6 +327,7 @@ const handleToast = (event) => {
   toast.show = true;
   setTimeout(() => { toast.show = false; }, 4000);
 };
+
 // ===== 2. الآن نمرر دالة تبديل التبويب إلى TourManager =====
 TourManager.setTabSwitcher((tabId) => {
   activeTab.value = tabId;
@@ -297,16 +355,6 @@ const startAdminTour = () => {
   TourManager.startTourByName(tourName);
 };
 
-// ===== 4. تشغيل الجولة الرئيسية تلقائياً (اختياري) =====
-// يمكنك استدعاؤها بعد تحميل الصفحة لأول مرة
-// على سبيل المثال في onMounted:
-// onMounted(() => {
-//   // نبدأ الجولة الرئيسية إذا لم يشاهدها المستخدم من قبل
-//   const mainSteps = TourManager.createMainTour();
-//   TourManager.startTour('main', mainSteps);
-// });
-
-
 // ===== بدء جولة الصفحة الحالية =====
 const startPageTour = () => {
   let steps = [];
@@ -325,7 +373,6 @@ const startPageTour = () => {
       steps = TourManager.createInventoryTour();
       tourName = 'inventory';
       break;
-    // ... باقي الصفحات
     default:
       startMainTour();
       return;
@@ -336,8 +383,10 @@ const startPageTour = () => {
 
 // ===== عند تغيير التبويب =====
 watch(activeTab, (newTab) => {
-  // يمكن تشغيل الجولة التفصيلية تلقائياً عند أول دخول للصفحة
-  // أو تركها للمستخدم بالضغط على الزر
+  // إغلاق القائمة الجانبية تلقائياً على الجوال عند التنقل
+  if (window.innerWidth < 1024) {
+    closeSidebar();
+  }
 });
 
 // ===== إعدادات Axios =====
@@ -379,7 +428,6 @@ axios.interceptors.response.use(
   }
 );
 
-
 // ===== Tabs مقسمة حسب الفئات =====
 const mainTabs = [
   { id: 'overview', name: 'الرئيسية', icon: 'fas fa-th-large' }
@@ -405,20 +453,18 @@ const generalTabs = [
   { id: 'categories', name: 'التصنيفات', icon: 'fas fa-tags' },
   { id: 'suppliers', name: 'الموردين', icon: 'fas fa-truck' },
   { id: 'users', name: 'المستخدمين', icon: 'fas fa-users' },
-
 ];
 
 const supportTabs = [
   { id: 'analytics', name: 'التحليلات', icon: 'fas fa-chart-bar' },
   { id: 'audit_log', name: 'سجل التدقيق', icon: 'fas fa-clipboard-list' },
-  { id: 'backup_settings',name: 'النسخ الاحتياطي',  icon: 'fas fa-database' },  // ✅ جديد
-  { id: 'settings',  name: 'الإعدادات',     icon: 'fas fa-cog' },
+  { id: 'backup_settings', name: 'النسخ الاحتياطي', icon: 'fas fa-database' },
+  { id: 'settings', name: 'الإعدادات', icon: 'fas fa-cog' },
   { id: 'guide', name: 'دليل الاستخدام', icon: 'fas fa-book' },
-  
   { id: 'about', name: 'حول النظام', icon: 'fas fa-info-circle' }
 ];
 
-// دمج جميع التبويبات (للاستخدام في الملاحة والقائمة الجانبية)
+// دمج جميع التبويبات
 const tabs = [
   ...mainTabs,
   ...inventoryTabs,
@@ -451,8 +497,8 @@ const currentComponent = computed(() => {
     expenses: Expenses,
     salaries: Salaries,
     guide: UserGuide,
-    backup_settings: BackupSettings,   // ✅ جديد
-    settings: Settings,   // ✅ جديد
+    backup_settings: BackupSettings,
+    settings: Settings,
     financial_reports: FinancialReports,
     audit_log: AuditLog,
   };
@@ -512,6 +558,10 @@ const updateGlobalLoading = (event) => {
 
 // ===== Lifecycle =====
 onMounted(async () => {
+  // ضبط حالة القائمة الجانبية حسب حجم الشاشة
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
   window.addEventListener(globalLoadingEvent, updateGlobalLoading);
@@ -520,10 +570,10 @@ onMounted(async () => {
     const { tab, result } = event.detail;
     if (tab) {
       activeTab.value = tab;
-      // تخزين النتيجة في متغير عمومي ليتمكن التبويب المستهدف من قراءتها
       window.selectedSearchResult = result;
     }
   });
+
   // ✅ حمّل إعدادات الصيدلية أولاً (للعرض الفوري)
   await loadSettings();
   updateConnectionStatus();
@@ -532,6 +582,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize);
   window.removeEventListener('online', updateConnectionStatus);
   window.removeEventListener('offline', updateConnectionStatus);
   window.removeEventListener(globalLoadingEvent, updateGlobalLoading);
@@ -541,4 +592,14 @@ onUnmounted(() => {
 
 <style scoped>
 /* يمكنك إضافة أي أنماط خاصة بهذا المكون، لكن معظم الأنماط ستأتي من ملف app.css العام */
+
+/* تحسينات للقائمة الجانبية */
+.sidebar {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* منع التمرير الأفقي */
+html, body {
+  overflow-x: hidden;
+}
 </style>
