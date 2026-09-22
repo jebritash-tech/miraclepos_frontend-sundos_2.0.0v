@@ -410,58 +410,41 @@ const optAccept       = document.getElementById('opt-accept');
 const optDontShow     = document.getElementById('opt-dont-show');
 const btnAccept       = document.getElementById('btn-accept');
 const btnReject       = document.getElementById('btn-reject');
+function getBasePath() {
+  const path = window.location.pathname;
+  const legalIdx = path.indexOf('/legal/');
+  if (legalIdx !== -1) {
+    return path.substring(0, legalIdx + 1);
+  }
+  const segments = path.split('/').filter(Boolean);
+  if (segments.length > 0) {
+    return '/' + segments[0] + '/';
+  }
+  return '/';
+}
+
 function resolveDestination() {
+  const base = getBasePath();
   const params = new URLSearchParams(window.location.search);
   const redirect = params.get('redirect');
 
   if (redirect) {
-    const cleanPath = redirect.replace(/^\/+/, '');
+    let cleanPath = redirect.replace(/^\/+/, '');
     if (cleanPath && !cleanPath.startsWith('//') && !cleanPath.includes('://')) {
-      // ✅ استخدم BasePath
-      const finalUrl = window.BasePath.url(cleanPath);
-      console.log('🎯 EULA redirect to:', finalUrl);
+      const finalUrl = base + cleanPath;
+      console.log('EULA redirect to:', finalUrl);
       return finalUrl;
     }
   }
 
   try {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user?.role === 'admin')   return window.BasePath.url('admin.html');
-    if (user?.role === 'cashier') return window.BasePath.url('shift.html');
-  } catch { /* ignore */ }
+    if (user?.role === 'admin')   return base + 'admin.html';
+    if (user?.role === 'cashier') return base + 'shift.html';
+  } catch (e) { /* ignore */ }
 
-  return window.BasePath.url('login.html');
+  return base + 'login.html';
 }
-/* ============================================================
-   Auto-update current date
-   ============================================================ */
-const now = new Date();
-
-try {
-  // محاولة استخدام صيغة عربية مع أرقام لاتينية
-  lastUpdateDate.textContent = new Intl.DateTimeFormat('ar-EG-u-nu-latn', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(now);
-} catch {
-  // fallback: صيغة إنجليزية
-  lastUpdateDate.textContent = now.toLocaleDateString('en-GB');
-}
-
-currentYear.textContent = now.getFullYear();
-
-/* ============================================================
-   Sync option "checked" class for visual feedback
-   ============================================================ */
-chkAccept.addEventListener('change', () => {
-  optAccept.classList.toggle('checked', chkAccept.checked);
-  btnAccept.disabled = !chkAccept.checked;
-});
-
-chkDontShow.addEventListener('change', () => {
-  optDontShow.classList.toggle('checked', chkDontShow.checked);
-});
 
 /* ============================================================
    Resolve redirect destination
