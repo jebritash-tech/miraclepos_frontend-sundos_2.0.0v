@@ -2335,13 +2335,13 @@ const app = createApp({
                     resolve(false);
                     return;
                 }
-        
+
                 console.log('🔍 testPeerJSCloud: بدء الفحص...');
                 
                 let resolved = false;
-        
+
                 const testPeer = new Peer({ debug: 2 });  // ← debug للتشخيص
-        
+
                 const finish = (result) => {
                     if (resolved) return;
                     resolved = true;
@@ -2349,18 +2349,18 @@ const app = createApp({
                     console.log('🔍 testPeerJSCloud النتيجة:', result);
                     resolve(result);
                 };
-        
+
                 const timeout = setTimeout(() => {
                     console.warn('⏰ testPeerJSCloud: Timeout بعد 8 ثوان');
                     finish(false);
                 }, 8000);  // ← زدنا من 4 إلى 8
-        
+
                 testPeer.on('open', (id) => {
                     console.log('✅ PeerJS Cloud يعمل، ID:', id);
                     clearTimeout(timeout);
                     finish(true);
                 });
-        
+
                 testPeer.on('error', (err) => {
                     console.error('❌ PeerJS Cloud error:', err.type, err.message);
                     clearTimeout(timeout);
@@ -2410,20 +2410,19 @@ const app = createApp({
                 ]);
 
                 if (hasCloud) {
-                        console.log('✅ PeerJS Cloud available — using Online mode');
-                        scannerMode.value = 'peerjs';
-                        scannerStatus.value = 'online-mode';
-                        await startPeerJSScanner();
-                    } else {
-                        console.warn('⚠️ PeerJS Cloud unavailable — falling back to Manual mode');
-                        
-                        // ✅ أظهر للمستخدم سبباً واضحاً
-                        showAlert(
-                            'تعذر الاتصال بـ PeerJS Cloud. سيتم استخدام الوضع اليدوي.',
-                            'warning'
-                        );
-                        
-                    }
+                    console.log('✅ PeerJS Cloud available — using Online mode');
+                    scannerMode.value = 'peerjs';
+                    scannerStatus.value = 'online-mode';
+                    await startPeerJSScanner();
+                } else {
+                    console.warn('⚠️ PeerJS Cloud unavailable — falling back to Manual mode');
+                    
+                    // ✅ أظهر للمستخدم سبباً واضحاً
+                    showAlert(
+                        'تعذر الاتصال بـ PeerJS Cloud. سيتم استخدام الوضع اليدوي.',
+                        'warning'
+                    );
+
                     if (typeof window.SimplePeer !== 'function') {
                         scannerError.value = 'مكتبة الاتصال غير محمّلة';
                         scannerStatus.value = 'error';
@@ -2461,7 +2460,7 @@ const app = createApp({
                     margin: 2,
                     errorCorrectionLevel: 'M',
                 });
-            }  catch (err) {
+            } catch (err) {
                 console.error('QR generation error:', err);
                 scannerError.value = 'تعذر توليد QR';
                 scannerStatus.value = 'error';
