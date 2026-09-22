@@ -643,7 +643,7 @@ const app = createApp({
         </div>
 
         <!-- تخطيط الموبايل والتابلت -->
-        <div class="lg:hidden h-[calc(100dvh-140px)] pb-2">
+        <div class="lg:hidden h-[calc(100dvh-160px)]">
 
             <div 
                 v-show="activeTab === 'recent'"
@@ -748,7 +748,7 @@ const app = createApp({
 
             <div 
                     v-show="activeTab === 'cart'"
-                    class="bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col h-full overflow-hidden"
+                    class="bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col h-full max-h-[calc(100dvh-180px)]"
                 >
                 <div class="p-3 sm:p-4 border-b bg-gradient-to-r from-emerald-50 to-blue-50 rounded-t-2xl flex justify-between items-center">
                     <span class="font-bold text-slate-700 text-base sm:text-lg flex items-center gap-2">
@@ -777,7 +777,7 @@ const app = createApp({
                     </div>
                 </div>
 
-                <div class="flex-1 p-2 sm:p-4 overflow-y-auto min-h-0">
+                <div class="flex-1 min-h-0 p-2 sm:p-4 overflow-y-auto">
                     <div 
                         v-for="(item, index) in cart" 
                         :key="index"
@@ -815,7 +815,7 @@ const app = createApp({
                     </div>
                 </div>
 
-                <div class="p-3 sm:p-4 border-t bg-slate-50 rounded-b-2xl flex-shrink-0 safe-area-bottom">
+                <div class="p-3 sm:p-4 border-t bg-slate-50 rounded-b-2xl flex-shrink-0">
                     <div class="mb-3 flex items-center justify-between flex-wrap gap-2">
                         <span class="text-xs sm:text-sm font-medium">طريقة التحصيل:</span>
                         <div class="flex gap-3 sm:gap-4">
