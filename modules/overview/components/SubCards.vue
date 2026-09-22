@@ -1,7 +1,7 @@
 <!-- modules/overview/components/SubCards.vue -->
 <template>
   <div class="sub-cards">
-    <!-- 1. قيمة المخزون (الأهم) -->
+    <!-- 1. قيمة المخزون -->
     <div class="sub-card">
       <div class="sub-icon"><i class="fas fa-boxes"></i></div>
       <div class="sub-info">
