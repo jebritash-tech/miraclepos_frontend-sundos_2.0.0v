@@ -527,8 +527,9 @@ onDeactivated(() => {
   }
 });
 </script>
-
 <style>
+@import './overview-responsive.css';
+
 /* أنماط إضافية للـ Modal */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
@@ -538,13 +539,11 @@ onDeactivated(() => {
   animation: fadeInUp 0.3s ease-out;
 }
 
-/* ✅ رفع الشريط العلوي كطبقة عليا ليظهر الـ dropdown فوق كل شيء */
 .top-bar {
   position: relative;
   z-index: 9999;
 }
 
-/* ✅ تعزيز حاوية البحث كسياق مستقل للـ dropdown */
 .search-box {
   position: relative;
   z-index: 10000;
