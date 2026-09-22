@@ -777,7 +777,7 @@ const app = createApp({
                     </div>
                 </div>
 
-                <div class="flex-1 p-2 sm:p-4 overflow-y-auto">
+                <div class="flex-1 p-2 sm:p-4 overflow-y-auto min-h-0">
                     <div 
                         v-for="(item, index) in cart" 
                         :key="index"
