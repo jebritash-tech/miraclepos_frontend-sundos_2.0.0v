@@ -410,7 +410,28 @@ const optAccept       = document.getElementById('opt-accept');
 const optDontShow     = document.getElementById('opt-dont-show');
 const btnAccept       = document.getElementById('btn-accept');
 const btnReject       = document.getElementById('btn-reject');
+function resolveDestination() {
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
 
+  if (redirect) {
+    const cleanPath = redirect.replace(/^\/+/, '');
+    if (cleanPath && !cleanPath.startsWith('//') && !cleanPath.includes('://')) {
+      // ✅ استخدم BasePath
+      const finalUrl = window.BasePath.url(cleanPath);
+      console.log('🎯 EULA redirect to:', finalUrl);
+      return finalUrl;
+    }
+  }
+
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (user?.role === 'admin')   return window.BasePath.url('admin.html');
+    if (user?.role === 'cashier') return window.BasePath.url('shift.html');
+  } catch { /* ignore */ }
+
+  return window.BasePath.url('login.html');
+}
 /* ============================================================
    Auto-update current date
    ============================================================ */
