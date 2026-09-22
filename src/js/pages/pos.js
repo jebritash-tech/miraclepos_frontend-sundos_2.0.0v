@@ -2331,26 +2331,40 @@ const app = createApp({
         const testPeerJSCloud = () => {
             return new Promise((resolve) => {
                 if (!navigator.onLine) {
+                    console.log('❌ testPeerJSCloud: لا يوجد إنترنت');
                     resolve(false);
                     return;
                 }
-
-                const testPeer = new Peer({ debug: 0 });
+        
+                console.log('🔍 testPeerJSCloud: بدء الفحص...');
+                
+                let resolved = false;
+        
+                const testPeer = new Peer({ debug: 2 });  // ← debug للتشخيص
+        
+                const finish = (result) => {
+                    if (resolved) return;
+                    resolved = true;
+                    try { testPeer.destroy(); } catch (e) {}
+                    console.log('🔍 testPeerJSCloud النتيجة:', result);
+                    resolve(result);
+                };
+        
                 const timeout = setTimeout(() => {
-                    try { testPeer.destroy(); } catch (e) {}
-                    resolve(false);
-                }, 4000);
-
-                testPeer.on('open', () => {
+                    console.warn('⏰ testPeerJSCloud: Timeout بعد 8 ثوان');
+                    finish(false);
+                }, 8000);  // ← زدنا من 4 إلى 8
+        
+                testPeer.on('open', (id) => {
+                    console.log('✅ PeerJS Cloud يعمل، ID:', id);
                     clearTimeout(timeout);
-                    try { testPeer.destroy(); } catch (e) {}
-                    resolve(true);
+                    finish(true);
                 });
-
-                testPeer.on('error', () => {
+        
+                testPeer.on('error', (err) => {
+                    console.error('❌ PeerJS Cloud error:', err.type, err.message);
                     clearTimeout(timeout);
-                    try { testPeer.destroy(); } catch (e) {}
-                    resolve(false);
+                    finish(false);
                 });
             });
         };
@@ -2427,15 +2441,20 @@ const app = createApp({
 
         const startPeerJSScanner = async () => {
             const myPeerId = getOrCreatePersistentPeerId();
-            const scanUrl = `${window.location.origin}/scan.html?mode=auto&peer=${encodeURIComponent(myPeerId)}`;
-
+            
+            // ✅ استخدام BASE_URL من Vite (يدعم GitHub Pages)
+            const base = import.meta.env.BASE_URL || '/';
+            const scanUrl = `${window.location.origin}${base}scan.html?mode=auto&peer=${encodeURIComponent(myPeerId)}`;
+            
+            console.log('📡 PeerJS scan URL:', scanUrl);
+            
             try {
                 scannerQrData.value = await QRCode.toDataURL(scanUrl, {
                     width: 320,
                     margin: 2,
                     errorCorrectionLevel: 'M',
                 });
-            } catch (err) {
+            }  catch (err) {
                 console.error('QR generation error:', err);
                 scannerError.value = 'تعذر توليد QR';
                 scannerStatus.value = 'error';
