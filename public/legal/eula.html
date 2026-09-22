@@ -448,12 +448,12 @@ function resolveDestination() {
   const params = new URLSearchParams(window.location.search);
   const redirect = params.get('redirect');
 
-  if (redirect) {
-    // منع open redirect: نسمح فقط بالمسارات المحلية
-    if (redirect.startsWith('/') && !redirect.startsWith('//')) {
-      return redirect;
-    }
-  }
+  // if (redirect) {
+  //   // منع open redirect: نسمح فقط بالمسارات المحلية
+  //   if (redirect.startsWith('/') && !redirect.startsWith('//')) {
+  //     return redirect;
+  //   }
+  // }
 
   // fallback: من المستخدم المخزّن
   try {
