@@ -570,3 +570,13 @@ p, span, div, a, li, td, th, label {
 .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
 }
+
+/* داخل <style> في app.css أو في pos.js */
+.safe-area-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* للـ nav العلوي أيضاً */
+nav {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+}
