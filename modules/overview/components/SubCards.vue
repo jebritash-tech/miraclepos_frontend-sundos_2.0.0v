@@ -10,7 +10,7 @@
         <div class="progress-mini">
           <div class="fill" style="--p:75%;"></div>
         </div>
-        <span style="font-size: 11px; color: #7f8c8d;">
+        <span class="sub-subtext">
           {{ inventory?.total_items || 0 }} صنف
         </span>
       </div>
@@ -25,6 +25,9 @@
         <div class="progress-mini">
           <div class="fill" style="--p:60%; background:linear-gradient(90deg,#f39c12,#e67e22);"></div>
         </div>
+        <span class="sub-subtext">
+          صافي ربح اليوم
+        </span>
       </div>
     </div>
 
@@ -37,6 +40,9 @@
         <div class="progress-mini">
           <div class="fill" style="--p:40%; background:linear-gradient(90deg,#1abc9c,#16a085);"></div>
         </div>
+        <span class="sub-subtext">
+          إجمالي المشتريات
+        </span>
       </div>
     </div>
   </div>
@@ -46,3 +52,30 @@
 defineProps(['inventory', 'profit', 'purchases']);
 const formatCurrency = (v) => Number(v || 0).toLocaleString();
 </script>
+
+<style scoped>
+/* ✅ تحسين التخطيط الداخلي للبطاقة */
+.sub-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.sub-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-info h3 {
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.sub-subtext {
+  display: block;
+  font-size: 11px;
+  color: #7f8c8d;
+  margin-top: 4px;
+}
+</style>
