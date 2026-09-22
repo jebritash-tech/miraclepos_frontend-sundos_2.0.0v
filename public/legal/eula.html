@@ -2,13 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>اتفاقية الترخيص — MiraclePOS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
-  <script src="./base-path.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
     body {
       font-family: 'Cairo', system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
@@ -16,8 +15,8 @@
       line-height: 1.9;
       padding: 24px 16px 40px;
       min-height: 100vh;
+      touch-action: manipulation;
     }
-
     .container {
       max-width: 900px;
       margin: 0 auto;
@@ -26,10 +25,6 @@
       overflow: hidden;
       box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
     }
-
-    /* ============================================================
-       Header
-       ============================================================ */
     .header {
       text-align: center;
       padding: 32px 40px 24px;
@@ -41,7 +36,6 @@
       height: 64px;
       border-radius: 16px;
       background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -49,20 +43,9 @@
       margin-bottom: 16px;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
-    .header h1 {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 6px;
-      letter-spacing: -0.3px;
-    }
-    .header p {
-      font-size: 13.5px;
-      opacity: 0.9;
-      margin-bottom: 4px;
-    }
-
+    .header h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .header p { font-size: 13.5px; opacity: 0.9; }
     .content-wrap { padding: 32px 40px 24px; }
-
     .last-update {
       display: inline-flex;
       align-items: center;
@@ -76,8 +59,6 @@
       margin-bottom: 20px;
       border: 1px solid #e9d5ff;
     }
-    .last-update i { font-size: 12px; }
-
     .info {
       background: #faf5ff;
       border-right: 4px solid #a855f7;
@@ -88,27 +69,17 @@
       color: #4c1d95;
       line-height: 1.7;
     }
-
-    /* ============================================================
-       Scrollable content
-       ============================================================ */
     .content-scroll {
       max-height: 380px;
       overflow-y: auto;
-      padding: 4px 8px 4px 0;
+      padding: 20px 8px 4px 0;
       margin-bottom: 20px;
       border-top: 1px solid #f1f5f9;
       border-bottom: 1px solid #f1f5f9;
-      padding-top: 20px;
     }
     .content-scroll::-webkit-scrollbar { width: 8px; }
     .content-scroll::-webkit-scrollbar-track { background: #f8fafc; border-radius: 4px; }
-    .content-scroll::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    .content-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
+    .content-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     h2 {
       font-size: 17px;
       font-weight: 800;
@@ -123,17 +94,12 @@
     ul, ol { padding-right: 24px; margin-bottom: 12px; }
     li { margin-bottom: 6px; font-size: 14px; color: #475569; }
     strong { color: #1e293b; font-weight: 800; }
-
-    /* ============================================================
-       Checkboxes
-       ============================================================ */
     .options {
       display: flex;
       flex-direction: column;
       gap: 10px;
       margin-bottom: 20px;
     }
-
     .option {
       display: flex;
       align-items: flex-start;
@@ -147,11 +113,7 @@
       user-select: none;
     }
     .option:hover { border-color: #cbd5e1; background: #f1f5f9; }
-    .option.checked {
-      border-color: #a855f7;
-      background: #faf5ff;
-    }
-
+    .option.checked { border-color: #a855f7; background: #faf5ff; }
     .option input[type="checkbox"] {
       width: 20px;
       height: 20px;
@@ -160,7 +122,6 @@
       accent-color: #a855f7;
       flex-shrink: 0;
     }
-
     .option-label {
       font-size: 14px;
       color: #1e293b;
@@ -176,16 +137,11 @@
       margin-top: 3px;
       font-weight: 600;
     }
-
-    /* ============================================================
-       Actions
-       ============================================================ */
     .actions {
       display: flex;
       gap: 12px;
       margin-bottom: 16px;
     }
-
     .btn {
       flex: 1;
       padding: 15px 24px;
@@ -201,7 +157,6 @@
       justify-content: center;
       gap: 10px;
     }
-
     .btn-accept {
       background: linear-gradient(135deg, #7c3aed, #a855f7);
       color: #fff;
@@ -216,20 +171,12 @@
       cursor: not-allowed;
       box-shadow: none;
     }
-
     .btn-reject {
       background: #f1f5f9;
       color: #64748b;
       flex: 0 0 130px;
     }
-    .btn-reject:hover {
-      background: #e2e8f0;
-      color: #334155;
-    }
-
-    /* ============================================================
-       Footer
-       ============================================================ */
+    .btn-reject:hover { background: #e2e8f0; color: #334155; }
     .footer {
       text-align: center;
       padding: 20px 40px 32px;
@@ -238,10 +185,6 @@
       font-size: 12px;
       color: #94a3b8;
     }
-
-    /* ============================================================
-       Responsive
-       ============================================================ */
     @media (max-width: 640px) {
       body { padding: 12px 8px 24px; }
       .header { padding: 24px 20px 20px; }
@@ -261,10 +204,6 @@
 <body>
 
 <div class="container">
-
-  <!-- ============================================================
-       Header
-       ============================================================ -->
   <div class="header">
     <div class="header-icon">📜</div>
     <h1>اتفاقية ترخيص المستخدم النهائي</h1>
@@ -272,25 +211,17 @@
   </div>
 
   <div class="content-wrap">
-
-    <!-- Last update (dynamic) -->
     <div class="last-update">
-      <i class="fas fa-calendar"></i>
       آخر تحديث: <span id="last-update-date">—</span>
     </div>
 
-    <!-- Info -->
     <div class="info">
       <strong>ℹ️ ملاحظة مهمة:</strong>
       يرجى قراءة هذه الاتفاقية بعناية قبل المتابعة. بالضغط على "موافق ومتابعة"،
       فإنك تُقر بموافقتك على جميع الشروط الواردة أدناه.
     </div>
 
-    <!-- ============================================================
-         Scrollable content
-         ============================================================ -->
     <div class="content-scroll">
-
       <h2>1. منح الترخيص</h2>
       <p>
         يمنحك مطوّر MiraclePOS ترخيصاً <strong>محدوداً، غير حصري، وغير قابل
@@ -343,14 +274,9 @@
       <p>
         تخضع هذه الاتفاقية لأحكام القوانين السارية في الجمهورية السودانية.
       </p>
-
     </div>
 
-    <!-- ============================================================
-         Options
-         ============================================================ -->
     <div class="options">
-
       <label class="option" id="opt-accept">
         <input type="checkbox" id="chk-accept">
         <span class="option-label">
@@ -366,50 +292,29 @@
           <small>يُخزَّن اختيارك محلياً ويتجاوز شاشة الاتفاقية في المرات القادمة</small>
         </span>
       </label>
-
     </div>
 
-    <!-- ============================================================
-         Actions
-         ============================================================ -->
     <div class="actions">
-      <button class="btn btn-reject" id="btn-reject">
-        ← رفض
-      </button>
-      <button class="btn btn-accept" id="btn-accept" disabled>
-        موافق ومتابعة →
-      </button>
+      <button class="btn btn-reject" id="btn-reject">← رفض</button>
+      <button class="btn btn-accept" id="btn-accept" disabled>موافق ومتابعة →</button>
     </div>
-
   </div>
 
-  <!-- ============================================================
-       Footer
-       ============================================================ -->
   <div class="footer">
     MiraclePOS © <span id="current-year">—</span> — جميع الحقوق محفوظة
   </div>
-
 </div>
 
 <script>
-/* ============================================================
+/* ═══════════════════════════════════════════════════════════════════
    Constants
-   ============================================================ */
+   ═══════════════════════════════════════════════════════════════════ */
 const EULA_VERSION = '1.0.0';
 const EULA_KEY = 'miraclepos_eula_acceptance';
 
-/* ============================================================
-   Elements
-   ============================================================ */
-const lastUpdateDate  = document.getElementById('last-update-date');
-const currentYear     = document.getElementById('current-year');
-const chkAccept       = document.getElementById('chk-accept');
-const chkDontShow     = document.getElementById('chk-dont-show');
-const optAccept       = document.getElementById('opt-accept');
-const optDontShow     = document.getElementById('opt-dont-show');
-const btnAccept       = document.getElementById('btn-accept');
-const btnReject       = document.getElementById('btn-reject');
+/* ═══════════════════════════════════════════════════════════════════
+   Helpers
+   ═══════════════════════════════════════════════════════════════════ */
 function getBasePath() {
   const path = window.location.pathname;
   const legalIdx = path.indexOf('/legal/');
@@ -446,86 +351,87 @@ function resolveDestination() {
   return base + 'login.html';
 }
 
-/* ============================================================
-   Resolve redirect destination
-   ============================================================ */
-function resolveDestination() {
-  const params = new URLSearchParams(window.location.search);
-  const redirect = params.get('redirect');
+/* ═══════════════════════════════════════════════════════════════════
+   Init
+   ═══════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  const lastUpdateDate = document.getElementById('last-update-date');
+  const currentYear    = document.getElementById('current-year');
+  const chkAccept      = document.getElementById('chk-accept');
+  const chkDontShow    = document.getElementById('chk-dont-show');
+  const optAccept      = document.getElementById('opt-accept');
+  const optDontShow    = document.getElementById('opt-dont-show');
+  const btnAccept      = document.getElementById('btn-accept');
+  const btnReject      = document.getElementById('btn-reject');
 
-  // if (redirect) {
-  //   // منع open redirect: نسمح فقط بالمسارات المحلية
-  //   if (redirect.startsWith('/') && !redirect.startsWith('//')) {
-  //     return redirect;
-  //   }
-  // }
-
-  // fallback: من المستخدم المخزّن
+  /* ═══ Date ═══ */
+  const now = new Date();
   try {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user?.role === 'admin') return 'admin.html';
-    if (user?.role === 'cashier') return 'shift.html';
-  } catch { /* ignore */ }
-
-  return 'login.html';
-}
-
-/* ============================================================
-   Accept
-   ============================================================ */
-btnAccept.addEventListener('click', () => {
-  if (!chkAccept.checked) return;
-
-  // ✅ قراءة معلومات المستخدم (إن وُجدت) لتضمينها في السجل
-  let userEmail = null;
-  let userRole = null;
-  try {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    userEmail = user?.email ?? null;
-    userRole = user?.role ?? null;
-  } catch { /* ignore */ }
-
-  const acceptance = {
-    accepted: true,
-    accepted_at: new Date().toISOString(),
-    version: EULA_VERSION,
-    dont_show_again: chkDontShow.checked,
-    user_email: userEmail,
-    user_role: userRole,
-    user_agent: navigator.userAgent,
-  };
-
-  try {
-    localStorage.setItem(EULA_KEY, JSON.stringify(acceptance));
-  } catch (e) {
-    console.error('Failed to save EULA acceptance:', e);
+    lastUpdateDate.textContent = new Intl.DateTimeFormat('ar-EG-u-nu-latn', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    }).format(now);
+  } catch {
+    lastUpdateDate.textContent = now.toLocaleDateString('en-GB');
   }
+  currentYear.textContent = now.getFullYear();
 
-  // التوجيه للوجهة
-  const destination = resolveDestination();
-  window.location.href = destination;
+  /* ═══ Checkbox events ═══ */
+  chkAccept.addEventListener('change', () => {
+    optAccept.classList.toggle('checked', chkAccept.checked);
+    btnAccept.disabled = !chkAccept.checked;
+  });
+
+  chkDontShow.addEventListener('change', () => {
+    optDontShow.classList.toggle('checked', chkDontShow.checked);
+  });
+
+  /* ═══ Accept ═══ */
+  btnAccept.addEventListener('click', () => {
+    if (!chkAccept.checked) return;
+
+    let userEmail = null;
+    let userRole = null;
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      userEmail = user?.email ?? null;
+      userRole = user?.role ?? null;
+    } catch (e) { /* ignore */ }
+
+    const acceptance = {
+      accepted: true,
+      accepted_at: new Date().toISOString(),
+      version: EULA_VERSION,
+      dont_show_again: chkDontShow.checked,
+      user_email: userEmail,
+      user_role: userRole,
+      user_agent: navigator.userAgent,
+    };
+
+    try {
+      localStorage.setItem(EULA_KEY, JSON.stringify(acceptance));
+    } catch (e) {
+      console.error('Failed to save EULA acceptance:', e);
+    }
+
+    const destination = resolveDestination();
+    window.location.href = destination;
+  });
+
+  /* ═══ Reject ═══ */
+  btnReject.addEventListener('click', () => {
+    const confirmed = confirm(
+      'إذا رفضت الاتفاقية، لن تتمكن من استخدام النظام.\n\n' +
+      'هل أنت متأكد من الرفض والعودة لصفحة تسجيل الدخول؟'
+    );
+    if (!confirmed) return;
+
+    const base = getBasePath();
+    window.location.href = base + 'login.html';
+  });
+
+  /* ═══ Focus ═══ */
+  chkAccept.focus();
 });
-
-/* ============================================================
-   Reject
-   ============================================================ */
-btnReject.addEventListener('click', () => {
-  const confirmed = confirm(
-    'إذا رفضت الاتفاقية، لن تتمكن من استخدام النظام.\n\n' +
-    'هل أنت متأكد من الرفض والعودة لصفحة تسجيل الدخول؟'
-  );
-
-  if (!confirmed) return;
-
-  // ✅ لا نحذف قبول قديم — فقط نُعيد المستخدم
-  // (لو كان قد قَبِل سابقاً ثم رفض الآن، نُبقي القبول القديم)
-  window.location.href = 'login.html';
-});
-
-/* ============================================================
-   Auto-focus
-   ============================================================ */
-chkAccept.focus();
 </script>
 
 </body>
