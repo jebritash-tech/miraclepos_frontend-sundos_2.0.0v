@@ -5,10 +5,7 @@
 
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>
         لوحة التحكم الإدارية - MiraclePOS 
@@ -32,6 +29,32 @@
     <!-- driver.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css" />
+    <style>
+    html {
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        touch-action: manipulation;
+    }
+    body {
+        touch-action: manipulation;
+        overscroll-behavior: none;
+    }
+    * {
+        touch-action: manipulation;
+    }
+    .overflow-y-auto,
+    .scrollable,
+    [class*="overflow-y"] {
+        touch-action: pan-y;
+    }
+    @media (max-width: 768px) {
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    }
+</style>
 </head>
 
 <body class="bg-slate-50 font-sans">
