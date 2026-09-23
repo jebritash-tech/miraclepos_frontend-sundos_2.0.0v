@@ -18,7 +18,9 @@
     "lang": "ar",
 
     "dir": "rtl",
-
+    "permissions": [
+        "camera"
+    ],
     "icons": [
         {
             "src": "./icons/icon-192.png",
