@@ -84,15 +84,43 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background: #000;
         }
 
+        /* ✅ CSS محسّن لحاوية القارئ */
         #reader {
+            position: relative !important;
             width: 100% !important;
             height: 100% !important;
-            border: none !important;
+            min-height: 300px !important;
+            background: #000 !important;
+            overflow: hidden !important;
         }
 
-        #reader video { object-fit: cover !important; }
+        #reader video {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 5 !important;
+        }
+
+        #reader > div {
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        /* إخفاء لوحة تحكم Html5Qrcode الداخلية */
+        #reader__dashboard,
+        #reader__scan_region img[alt="Info icon"],
+        #reader__header_message {
+            display: none !important;
+        }
 
         .scan-overlay {
             position: absolute;
@@ -290,6 +318,7 @@
             margin-bottom: 12px;
             line-height: 1.6;
             max-width: 400px;
+            white-space: pre-line;
         }
 
         .error-box .detail {
@@ -397,6 +426,7 @@
             border-radius: 16px;
             overflow: hidden;
             background: #000;
+            min-height: 300px;
         }
 
         .flash {
@@ -414,7 +444,6 @@
             100% { opacity: 0; }
         }
 
-        /* زر اختبار الكاميرا */
         .camera-test-btn {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
@@ -628,7 +657,7 @@
         'use strict';
 
         // ═══════════════════════════════════════════════════════════
-        // Debug helpers
+        // Debug
         // ═══════════════════════════════════════════════════════════
         function setDebug(id, value, status) {
             const el = document.getElementById(id);
@@ -640,52 +669,30 @@
         function updateDebugPanel() {
             const s = window.__libStatus;
 
-            setDebug('dbg-html5',
-                s.html5 ? '✅ محمّلة' : (s.html5Error || '❌ غير محمّلة'),
-                s.html5 ? 'ok' : 'fail');
-
-            setDebug('dbg-simplepeer',
-                s.simplepeer ? '✅ محمّلة' : (s.simplepeerError || '❌ غير محمّلة'),
-                s.simplepeer ? 'ok' : 'fail');
-
-            setDebug('dbg-peer',
-                s.peer ? '✅ محمّلة' : (s.peerError || '❌ غير محمّلة'),
-                s.peer ? 'ok' : 'fail');
-
-            setDebug('dbg-qrcode',
-                s.qrcode ? '✅ محمّلة' : (s.qrcodeError || '❌ غير محمّلة'),
-                s.qrcode ? 'ok' : 'fail');
-
-            setDebug('dbg-https',
-                window.location.protocol === 'https:' ? '✅ آمن' : '⚠️ غير آمن',
-                window.location.protocol === 'https:' ? 'ok' : 'pending');
-
-            setDebug('dbg-online',
-                navigator.onLine ? '✅ متصل' : '❌ غير متصل',
-                navigator.onLine ? 'ok' : 'fail');
+            setDebug('dbg-html5', s.html5 ? '✅ محمّلة' : (s.html5Error || '❌ غير محمّلة'), s.html5 ? 'ok' : 'fail');
+            setDebug('dbg-simplepeer', s.simplepeer ? '✅ محمّلة' : (s.simplepeerError || '❌ غير محمّلة'), s.simplepeer ? 'ok' : 'fail');
+            setDebug('dbg-peer', s.peer ? '✅ محمّلة' : (s.peerError || '❌ غير محمّلة'), s.peer ? 'ok' : 'fail');
+            setDebug('dbg-qrcode', s.qrcode ? '✅ محمّلة' : (s.qrcodeError || '❌ غير محمّلة'), s.qrcode ? 'ok' : 'fail');
+            setDebug('dbg-https', window.location.protocol === 'https:' ? '✅ آمن' : '⚠️ غير آمن', window.location.protocol === 'https:' ? 'ok' : 'pending');
+            setDebug('dbg-online', navigator.onLine ? '✅ متصل' : '❌ غير متصل', navigator.onLine ? 'ok' : 'fail');
 
             const hasMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-            setDebug('dbg-camera',
-                hasMedia ? '✅ متاح' : '❌ غير متاح',
-                hasMedia ? 'ok' : 'fail');
+            setDebug('dbg-camera', hasMedia ? '✅ متاح' : '❌ غير متاح', hasMedia ? 'ok' : 'fail');
 
-            // حالة إذن الكاميرا
             if (navigator.permissions && navigator.permissions.query) {
                 navigator.permissions.query({ name: 'camera' })
                     .then(result => {
                         const labels = {
                             'granted': '✅ مسموح',
                             'denied': '❌ مرفوض',
-                            'prompt': '⏳ لم يُطلب بعد',
+                            'prompt': '⏳ لم يُطلب',
                         };
                         const stat = result.state === 'granted' ? 'ok'
                                    : result.state === 'denied' ? 'fail'
                                    : 'pending';
                         setDebug('dbg-permission', labels[result.state] || result.state, stat);
                     })
-                    .catch(() => {
-                        setDebug('dbg-permission', '⚠️ غير معروف', 'pending');
-                    });
+                    .catch(() => setDebug('dbg-permission', '⚠️ غير معروف', 'pending'));
             } else {
                 setDebug('dbg-permission', '⚠️ API غير مدعوم', 'pending');
             }
@@ -698,9 +705,7 @@
             const loader = document.getElementById('initial-loader');
             if (loader) {
                 loader.classList.add('hidden');
-                setTimeout(() => {
-                    if (loader.parentNode) loader.remove();
-                }, 500);
+                setTimeout(() => { if (loader.parentNode) loader.remove(); }, 500);
             }
         }
 
@@ -709,7 +714,7 @@
             const textEl = document.getElementById('errorText');
             const detailEl = document.getElementById('errorDetail');
 
-            if (titleEl) titleEl.textContent = title || 'تعذر الاتصال';
+            if (titleEl) titleEl.textContent = title || 'خطأ';
             if (textEl) textEl.textContent = message || '';
 
             if (detail) {
@@ -802,18 +807,14 @@
                 try {
                     state.connection.send({ type: 'barcode', code, timestamp: now });
                     sent = true;
-                } catch (e) {
-                    console.error('PeerJS send error:', e);
-                }
+                } catch (e) { console.error(e); }
             }
 
             if (!sent && state.simplePeer && state.simplePeer.connected) {
                 try {
                     state.simplePeer.send(JSON.stringify({ type: 'barcode', code, timestamp: now }));
                     sent = true;
-                } catch (e) {
-                    console.error('SimplePeer send error:', e);
-                }
+                } catch (e) { console.error(e); }
             }
 
             if (sent) {
@@ -829,6 +830,7 @@
                 if (lastScanCode) lastScanCode.textContent = code;
                 if (lastScan) lastScan.style.display = 'block';
                 setTimeout(() => { if (lastScan) lastScan.style.display = 'none'; }, 1500);
+
                 flashScreen();
                 playBeep();
                 if (navigator.vibrate) navigator.vibrate(50);
@@ -838,27 +840,92 @@
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ✅ Camera — يطلب الإذن أولاً بشكل صريح
+        // ✅ تشغيل كاميرا الباركود
         // ═══════════════════════════════════════════════════════════
-        async function requestCameraPermission() {
-            console.log('📷 Requesting camera permission...');
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('CAMERA_API_UNAVAILABLE: المتصفح لا يدعم الكاميرا');
+        async function activateCamera() {
+            if (state.html5QrCode) {
+                console.log('⚠️ Camera already active');
+                return;
             }
 
-            // ✅ طلب الإذن مباشرة — هذا سيُظهر dialog النظام
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' },
-                audio: false,
+            const readerEl = document.getElementById('reader');
+            if (!readerEl) throw new Error('Reader element not found');
+
+            // تأكد من عدم وجود فيديو قديم
+            readerEl.innerHTML = '';
+
+            console.log('📷 Creating Html5Qrcode...');
+
+            state.html5QrCode = new Html5Qrcode('reader', {
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                ],
+                verbose: false,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true,
+                },
             });
 
-            console.log('✅ Permission granted');
+            const config = {
+                fps: 15,
+                qrbox: (w, h) => {
+                    const minEdge = Math.min(w, h);
+                    const size = Math.floor(minEdge * 0.7);
+                    return { width: size, height: size };
+                },
+                aspectRatio: 1.0,
+                disableFlip: false,
+                videoConstraints: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                },
+            };
 
-            // أوقف الـ stream — سنستخدم Html5Qrcode
-            stream.getTracks().forEach(track => track.stop());
+            console.log('📷 Starting Html5Qrcode...');
 
-            return true;
+            try {
+                await state.html5QrCode.start(
+                    { facingMode: 'environment' },
+                    config,
+                    onScanSuccess,
+                    () => {}
+                );
+
+                console.log('✅ Html5Qrcode started successfully');
+                state.cameraActive = true;
+
+                // تأكد من أن الفيديو مرئي
+                setTimeout(() => {
+                    const video = document.querySelector('#reader video');
+                    if (video) {
+                        video.style.display = 'block';
+                        video.style.visibility = 'visible';
+                        video.style.opacity = '1';
+                        video.setAttribute('playsinline', 'true');
+                        video.setAttribute('autoplay', 'true');
+                        video.setAttribute('muted', 'true');
+                        console.log('✅ Video verified:', video.videoWidth, 'x', video.videoHeight);
+                    }
+                }, 1000);
+
+            } catch (err) {
+                console.error('❌ Html5Qrcode.start error:', err);
+                throw err;
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            sendBarcode(decodedText);
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -872,67 +939,45 @@
                 return;
             }
 
-            // ═══════════════════════════════════════════════════════
-            // الخطوة 1: اطلب إذن الكاميرا فوراً
-            // ═══════════════════════════════════════════════════════
             const loadingText = document.getElementById('loadingText');
-            if (loadingText) loadingText.textContent = 'جاري طلب إذن الكاميرا...';
+            if (loadingText) loadingText.textContent = 'جاري تشغيل الكاميرا...';
 
+            // ✅ شغّل الكاميرا مباشرة
             try {
-                await requestCameraPermission();
+                await activateCamera();
+                hideLoading();
                 updateDebugPanel();
             } catch (err) {
-                console.error('❌ Camera permission error:', err);
+                console.error('❌ Camera error:', err);
 
-                let title = 'تعذر الوصول للكاميرا';
+                let title = 'تعذر فتح الكاميرا';
                 let msg = '';
-                let detail = `name: ${err.name || 'N/A'}\nmessage: ${err.message || 'N/A'}`;
+                let detail = `name: ${err.name || 'N/A'}\nmessage: ${err.message || 'N/A'}\n` +
+                             `string: ${String(err)}`;
 
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                     msg = 'يجب السماح بالوصول للكاميرا.\n\n' +
                           'الحل:\n' +
                           '1. افتح إعدادات Chrome\n' +
                           '2. المواقع → الكاميرا\n' +
-                          '3. ابحث عن هذا الموقع واسمح بالكاميرا';
+                          '3. اسمح للموقع';
                 } else if (err.name === 'NotFoundError') {
                     msg = 'لا توجد كاميرا على هذا الجهاز.';
-                } else if (err.name === 'NotReadableError') {
+                } else if (err.name === 'NotReadableError' || String(err).includes('NotReadable')) {
                     msg = 'الكاميرا مستخدمة من تطبيق آخر. أغلق التطبيقات الأخرى.';
-                } else if (err.name === 'SecurityError' || String(err.message || '').toLowerCase().includes('secure')) {
+                } else if (err.name === 'OverconstrainedError') {
+                    msg = 'مواصفات الكاميرا غير مدعومة.';
+                } else if (String(err).toLowerCase().includes('secure')) {
                     msg = 'يجب استخدام HTTPS لفتح الكاميرا.';
-                } else if (String(err.message || '').includes('CAMERA_API_UNAVAILABLE')) {
-                    msg = 'متصفحك لا يدعم الكاميرا.';
                 } else {
-                    msg = err.message || 'خطأ غير معروف';
+                    msg = err.message || String(err) || 'خطأ غير معروف';
                 }
 
                 showError(title, msg, detail);
                 return;
             }
 
-            // ═══════════════════════════════════════════════════════
-            // الخطوة 2: شغّل ماسح الباركود
-            // ═══════════════════════════════════════════════════════
-            if (loadingText) loadingText.textContent = 'جاري تشغيل الكاميرا...';
-
-            try {
-                await activateCamera();
-                hideLoading();
-                state.cameraActive = true;
-                console.log('✅ Camera scanner active');
-            } catch (err) {
-                console.error('❌ Camera scanner error:', err);
-                showError(
-                    'تعذر تشغيل الكاميرا',
-                    'حدث خطأ أثناء تشغيل ماسح الباركود.',
-                    `${err.name}: ${err.message}`
-                );
-                return;
-            }
-
-            // ═══════════════════════════════════════════════════════
-            // الخطوة 3: اتصل بـ PeerJS (الكاميرا تعمل بالفعل)
-            // ═══════════════════════════════════════════════════════
+            // الآن اتصل بـ PeerJS
             if (loadingText) loadingText.textContent = 'جاري الاتصال بالكمبيوتر...';
 
             try {
@@ -979,7 +1024,6 @@
             state.peer.on('error', (err) => {
                 console.error('Peer error:', err);
 
-                // ⚠️ لا نُظهر شاشة خطأ كاملة — الكاميرا تعمل
                 let statusText = 'فشل الاتصال';
                 if (err.type === 'peer-unavailable') statusText = 'الكمبيوتر غير متاح';
                 else if (err.type === 'network') statusText = 'مشكلة في الشبكة';
@@ -987,7 +1031,6 @@
 
                 updateConnectionStatus('disconnected', statusText);
 
-                // ✅ عرض تلميح فقط — لا شاشة كاملة
                 const hint = document.createElement('div');
                 hint.style.cssText = `
                     position: fixed;
@@ -1015,28 +1058,8 @@
         async function startManualMode() {
             document.getElementById('manualMode').classList.add('active');
 
-            // ✅ اطلب إذن الكاميرا أولاً
             const loadingText = document.getElementById('loadingText');
-            if (loadingText) loadingText.textContent = 'جاري طلب إذن الكاميرا...';
-
-            try {
-                await requestCameraPermission();
-                updateDebugPanel();
-            } catch (err) {
-                console.error('❌ Camera permission error:', err);
-
-                let msg = 'تعذر الوصول للكاميرا.';
-                if (err.name === 'NotAllowedError') {
-                    msg = 'يجب السماح بالوصول للكاميرا من إعدادات Chrome.';
-                } else if (err.name === 'NotFoundError') {
-                    msg = 'لا توجد كاميرا على هذا الجهاز.';
-                } else if (err.name === 'NotReadableError') {
-                    msg = 'الكاميرا مستخدمة من تطبيق آخر.';
-                }
-
-                showError('تعذر الوصول للكاميرا', msg, `${err.name}: ${err.message}`);
-                return;
-            }
+            if (loadingText) loadingText.textContent = 'جاري تشغيل الكاميرا...';
 
             hideLoading();
             await startOfferScanner();
@@ -1049,6 +1072,8 @@
                 return;
             }
 
+            offerEl.innerHTML = '';
+
             state.offerScanner = new Html5Qrcode('offerScanner', {
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
                 verbose: false,
@@ -1058,6 +1083,11 @@
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
+                videoConstraints: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                },
             };
 
             try {
@@ -1070,21 +1100,12 @@
             } catch (err) {
                 console.error('Camera error:', err);
 
-                let title = 'تعذر فتح الكاميرا';
-                let msg = '';
-                let detail = `name: ${err.name || 'N/A'}\nmessage: ${err.message || 'N/A'}`;
+                let msg = 'تعذر فتح الكاميرا.';
+                if (err.name === 'NotAllowedError') msg = 'يجب السماح بالوصول للكاميرا.';
+                else if (err.name === 'NotFoundError') msg = 'لا توجد كاميرا على هذا الجهاز.';
+                else if (err.name === 'NotReadableError') msg = 'الكاميرا مستخدمة من تطبيق آخر.';
 
-                if (err.name === 'NotAllowedError') {
-                    msg = 'يجب السماح بالوصول للكاميرا.';
-                } else if (err.name === 'NotFoundError') {
-                    msg = 'لا توجد كاميرا على هذا الجهاز.';
-                } else if (err.name === 'NotReadableError') {
-                    msg = 'الكاميرا مستخدمة من تطبيق آخر.';
-                } else {
-                    msg = err.message || 'خطأ غير معروف';
-                }
-
-                showError(title, msg, detail);
+                showError('تعذر فتح الكاميرا', msg, `${err.name}: ${err.message}`);
             }
         }
 
@@ -1121,17 +1142,12 @@
                 state.simplePeer.on('signal', (data) => {
                     if (data.type === 'answer') {
                         if (typeof QRCode === 'undefined') {
-                            showError(
-                                'مكتبة QR مفقودة',
-                                'مكتبة توليد الـ QR لم تُحمّل.',
-                                'typeof QRCode === "undefined"'
-                            );
+                            showError('مكتبة QR مفقودة', 'مكتبة توليد الـ QR لم تُحمّل.');
                             return;
                         }
 
                         const answerEncoded = btoa(JSON.stringify(data));
                         const container = document.getElementById('answerQRContainer');
-
                         if (!container) return;
 
                         container.innerHTML = '';
@@ -1186,55 +1202,6 @@
         }
 
         // ═══════════════════════════════════════════════════════════
-        // Camera (Barcode Scanner)
-        // ═══════════════════════════════════════════════════════════
-        async function activateCamera() {
-            if (state.html5QrCode) return;
-
-            const readerEl = document.getElementById('reader');
-            if (!readerEl) {
-                throw new Error('Reader element not found');
-            }
-
-            state.html5QrCode = new Html5Qrcode('reader', {
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.CODABAR,
-                ],
-                verbose: false,
-            });
-
-            const config = {
-                fps: 15,
-                qrbox: (w, h) => {
-                    const minEdge = Math.min(w, h);
-                    const size = Math.floor(minEdge * 0.75);
-                    return { width: size, height: Math.floor(size * 0.6) };
-                },
-                aspectRatio: 1.777,
-            };
-
-            await state.html5QrCode.start(
-                { facingMode: 'environment' },
-                config,
-                onScanSuccess,
-                () => {}
-            );
-        }
-
-        function onScanSuccess(decodedText) {
-            sendBarcode(decodedText);
-        }
-
-        // ═══════════════════════════════════════════════════════════
         // Cleanup
         // ═══════════════════════════════════════════════════════════
         window.addEventListener('beforeunload', () => {
@@ -1249,8 +1216,6 @@
         // اختبار الكاميرا يدوياً
         // ═══════════════════════════════════════════════════════════
         window.testCameraManually = async function () {
-            updateDebugPanel();
-
             const loadingText = document.getElementById('loadingText');
             if (loadingText) loadingText.textContent = 'اختبار الكاميرا...';
 
@@ -1270,16 +1235,10 @@
                 }, 1500);
             } catch (err) {
                 console.error('Manual camera test failed:', err);
-
                 showError(
                     'فشل اختبار الكاميرا',
-                    'تعذر الوصول للكاميرا. راجع الرسالة أدناه.',
-                    `name: ${err.name}\nmessage: ${err.message}\n\n` +
-                    `علاج:\n` +
-                    `1. افتح إعدادات Chrome\n` +
-                    `2. المواقع → الكاميرا\n` +
-                    `3. ابحث عن "${location.hostname}" واسمح\n` +
-                    `4. أعد تحميل الصفحة`
+                    'تعذر الوصول للكاميرا.',
+                    `name: ${err.name}\nmessage: ${err.message}`
                 );
             }
         };
@@ -1287,8 +1246,6 @@
         // ═══════════════════════════════════════════════════════════
         // Safety Timeout
         // ═══════════════════════════════════════════════════════════
-        const GLOBAL_TIMEOUT_MS = 60000;
-
         setTimeout(() => {
             const loader = document.getElementById('initial-loader');
             const loadingOverlay = document.getElementById('loadingOverlay');
@@ -1302,25 +1259,16 @@
 
                 const s = window.__libStatus;
                 let detail = '';
-
                 if (!s.html5) detail += '❌ Html5Qrcode غير محمّلة\n';
-                if (!s.simplepeer) detail += '❌ SimplePeer غير محمّلة\n';
                 if (!s.peer) detail += '❌ PeerJS غير محمّلة\n';
-                if (!s.qrcode) detail += '❌ QRCode غير محمّلة\n';
                 if (!navigator.onLine) detail += '❌ لا يوجد اتصال بالإنترنت\n';
-                if (window.location.protocol !== 'https:') detail += '⚠️ الصفحة ليست HTTPS\n';
 
-                if (!detail) {
-                    detail = 'المكتبات محمّلة، لكن التهيئة تأخرت.\n' +
-                             'افحص أذونات الكاميرا في المتصفح.';
-                }
-
-                showError('انتهت مهلة التحميل', 'لم تكتمل التهيئة خلال 60 ثانية.', detail);
+                showError('انتهت المهلة', 'لم تكتمل التهيئة خلال 60 ثانية.', detail || 'افحص أذونات الكاميرا');
             }
-        }, GLOBAL_TIMEOUT_MS);
+        }, 60000);
 
         // ═══════════════════════════════════════════════════════════
-        // Entry Point
+        // Boot
         // ═══════════════════════════════════════════════════════════
         function boot() {
             updateDebugPanel();
@@ -1337,28 +1285,19 @@
                     if (!s.qrcode) missing.push('QRCode');
 
                     if (missing.length > 0) {
-                        showError(
-                            'مكتبات مفقودة',
-                            `لم تُحمّل: ${missing.join(', ')}`,
-                            `Html5Qrcode: ${s.html5}\nSimplePeer: ${s.simplepeer}\nQRCode: ${s.qrcode}`
-                        );
+                        showError('مكتبات مفقودة', `لم تُحمّل: ${missing.join(', ')}`);
                         return;
                     }
 
                     hideInitialLoader();
                     startManualMode();
-
                 } else {
                     const missing = [];
                     if (!s.html5) missing.push('Html5Qrcode');
                     if (!s.peer) missing.push('PeerJS');
 
                     if (missing.length > 0) {
-                        showError(
-                            'مكتبات مفقودة',
-                            `لم تُحمّل: ${missing.join(', ')}`,
-                            `Html5Qrcode: ${s.html5}\nPeerJS: ${s.peer}`
-                        );
+                        showError('مكتبات مفقودة', `لم تُحمّل: ${missing.join(', ')}`);
                         return;
                     }
 
