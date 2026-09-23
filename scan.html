@@ -307,11 +307,23 @@
             padding: 16px;
             display: inline-block;
             margin: 12px auto;
+            min-width: 280px;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .qr-display img {
+        /* ✅ qrcodejs ينشئ canvas أو img داخل هذا العنصر */
+        .qr-display #answerQRContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-display #answerQRContainer img,
+        .qr-display #answerQRContainer canvas {
             display: block;
-            width: 100%;
             max-width: 280px;
             height: auto;
         }
@@ -443,7 +455,7 @@
         </div>
     </div>
 
-    <!-- Manual Mode - Simplified -->
+    <!-- Manual Mode -->
     <div class="manual-mode" id="manualMode">
         <div class="header" style="margin-bottom: 16px; border-radius: 16px;">
             <h1><i class="fas fa-wifi-slash"></i> وضع بدون إنترنت</h1>
@@ -469,7 +481,8 @@
             <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> الخطوة 2: امسح هذا الرمز بالكمبيوتر</h2>
             <p>اعرض هذا الرمز على شاشة الكمبيوتر حتى يمسحه.</p>
             <div class="qr-display">
-                <img id="answerQRImage" alt="Answer QR" />
+                <!-- ✅ qrcodejs يبني canvas/img داخل هذا العنصر -->
+                <div id="answerQRContainer"></div>
             </div>
             <p style="font-size: 12px; margin-top: 12px; color: #f59e0b;">
                 <i class="fas fa-clock"></i>
@@ -484,11 +497,14 @@
         </div>
     </div>
 
-    <!-- ✅ المكتبات — تم إصلاح رابط qrcode -->
+    <!-- ═══════════════════════════════════════════════════════════
+         المكتبات — تم استبدال qrcode بـ qrcodejs
+         ═══════════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
-    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- ✅ qrcodejs من cdnjs (موثوق 100%) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
     (function () {
@@ -599,7 +615,6 @@
 
             let sent = false;
 
-            // Try PeerJS connection first
             if (state.connection && state.connection.open) {
                 try {
                     state.connection.send({ type: 'barcode', code, timestamp: now });
@@ -609,7 +624,6 @@
                 }
             }
 
-            // Fallback to SimplePeer connection
             if (!sent && state.simplePeer && state.simplePeer.connected) {
                 try {
                     state.simplePeer.send(JSON.stringify({ type: 'barcode', code, timestamp: now }));
@@ -669,7 +683,7 @@
                 });
 
                 conn.on('data', (data) => {
-                    if (data.type === 'ack') {
+                    if (data && data.type === 'ack') {
                         // Confirmed receipt
                     }
                 });
@@ -709,6 +723,14 @@
         }
 
         async function startOfferScanner() {
+            console.log('🎥 Starting offer scanner...');
+
+            const offerEl = document.getElementById('offerScanner');
+            if (!offerEl) {
+                showError('عنصر الماسح غير موجود');
+                return;
+            }
+
             state.offerScanner = new Html5Qrcode('offerScanner', {
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
                 verbose: false,
@@ -727,16 +749,31 @@
                     onOfferScanned,
                     () => {}
                 );
+                console.log('✅ Offer scanner started');
             } catch (err) {
                 console.error('Camera error:', err);
-                showError('تعذر فتح الكاميرا. اسمح بالوصول للكاميرا.');
+
+                let msg = 'تعذر فتح الكاميرا. ';
+                if (err.name === 'NotAllowedError') {
+                    msg += 'يجب السماح بالوصول للكاميرا.';
+                } else if (err.name === 'NotFoundError') {
+                    msg += 'لا توجد كاميرا على هذا الجهاز.';
+                } else if (String(err.message || '').toLowerCase().includes('secure')) {
+                    msg += 'يجب استخدام HTTPS.';
+                } else {
+                    msg += err.message || '';
+                }
+                showError(msg);
             }
         }
 
         async function onOfferScanned(decodedText) {
+            console.log('✅ Offer QR scanned');
             try {
-                await state.offerScanner.stop();
-                state.offerScanner = null;
+                if (state.offerScanner) {
+                    await state.offerScanner.stop();
+                    state.offerScanner = null;
+                }
             } catch (e) {
                 // Ignore
             }
@@ -766,31 +803,43 @@
 
                 state.simplePeer.on('signal', (data) => {
                     if (data.type === 'answer') {
-                        const answerEncoded = btoa(JSON.stringify(data));
+                        console.log('📤 Answer signal generated');
 
-                        // ✅ تحقق من وجود مكتبة QRCode
+                        // ✅ تحقق من وجود qrcodejs (اسمها QRCode عالمي)
                         if (typeof QRCode === 'undefined') {
-                            console.error('❌ QRCode library not loaded!');
+                            console.error('❌ QRCode (qrcodejs) is undefined!');
                             showError('مكتبة QR غير محمّلة');
                             return;
                         }
 
-                        QRCode.toDataURL(answerEncoded, {
-                            width: 500,
-                            margin: 1,
-                            errorCorrectionLevel: 'L',
-                            color: {
-                                dark: '#0f172a',
-                                light: '#ffffff',
-                            },
-                        }, (err, url) => {
-                            if (err) {
-                                console.error('QR generation error:', err);
-                                return;
-                            }
-                            const img = document.getElementById('answerQRImage');
-                            if (img) img.src = url;
-                        });
+                        const answerEncoded = btoa(JSON.stringify(data));
+                        console.log('📤 Answer encoded length:', answerEncoded.length);
+
+                        // ✅ qrcodejs — نمسح الحاوية أولاً ثم نضيف QR جديد
+                        const container = document.getElementById('answerQRContainer');
+                        if (!container) {
+                            console.error('❌ answerQRContainer not found');
+                            showError('عنصر عرض QR غير موجود');
+                            return;
+                        }
+
+                        // امسح القديم
+                        container.innerHTML = '';
+
+                        try {
+                            new QRCode(container, {
+                                text: answerEncoded,
+                                width: 280,
+                                height: 280,
+                                colorDark: '#0f172a',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.L,
+                            });
+                            console.log('✅ QR generated with qrcodejs');
+                        } catch (err) {
+                            console.error('❌ QR generation error:', err);
+                            showError('تعذر توليد رمز الإجابة');
+                        }
                     }
                 });
 
@@ -803,7 +852,6 @@
                     document.getElementById('step3').style.display = 'block';
                     document.getElementById('step3').classList.add('active');
 
-                    // شغّل الكاميرا تلقائياً للمسح
                     setTimeout(() => {
                         activateCamera().catch(err => {
                             console.error('Camera activation error:', err);
@@ -824,7 +872,7 @@
 
                 state.simplePeer.on('error', (err) => {
                     console.error('SimplePeer error:', err);
-                    // Don't show error for transient network issues
+                    // لا تظهر خطأ للأخطاء العابرة
                 });
 
                 state.simplePeer.signal(decoded);
@@ -907,7 +955,7 @@
         });
 
         // ═══════════════════════════════════════════════════════════
-        // Safety Timeout — لا تدع "جاري التحميل" للأبد
+        // Safety Timeout
         // ═══════════════════════════════════════════════════════════
         const GLOBAL_TIMEOUT_MS = 20000;
         setTimeout(() => {
@@ -926,27 +974,42 @@
         function boot() {
             hideInitialLoader();
 
-            console.log('🚀 Booting scan page, mode:', mode);
+            console.log('═══════════════════════════════════════════');
+            console.log('🚀 BOOT — Scan Page');
+            console.log('   mode:', mode);
+            console.log('   peer:', peerId);
+            console.log('   HTTPS:', window.location.protocol === 'https:');
+            console.log('   Online:', navigator.onLine);
+            console.log('───────────────────────────────────────────');
+            console.log('📚 Libraries:');
+            console.log('   Html5Qrcode:', typeof Html5Qrcode);
+            console.log('   SimplePeer: ', typeof SimplePeer);
+            console.log('   Peer:       ', typeof Peer);
+            console.log('   QRCode:     ', typeof QRCode);
+            console.log('═══════════════════════════════════════════');
 
-            // ✅ تحقق من المكتبات الحرجة
             if (typeof Html5Qrcode === 'undefined') {
-                showError('مكتبة قارئ الباركود لم تُحمّل. تحقق من الاتصال بالإنترنت.');
+                showError('❌ مكتبة Html5Qrcode لم تُحمّل. تحقق من الإنترنت.');
                 return;
             }
 
             if (mode === 'manual') {
                 if (typeof SimplePeer === 'undefined') {
-                    showError('مكتبة SimplePeer لم تُحمّل. تحقق من الاتصال بالإنترنت.');
+                    showError('❌ مكتبة SimplePeer لم تُحمّل. تحقق من الإنترنت.');
+                    return;
+                }
+                if (typeof QRCode === 'undefined') {
+                    showError('❌ مكتبة QRCode (qrcodejs) لم تُحمّل. تحقق من الإنترنت.');
                     return;
                 }
                 startManualMode();
             } else {
                 if (typeof Peer === 'undefined') {
-                    showError('مكتبة PeerJS لم تُحمّل. تحقق من الاتصال بالإنترنت.');
+                    showError('❌ مكتبة PeerJS لم تُحمّل. تحقق من الإنترنت.');
                     return;
                 }
                 if (!peerId) {
-                    showError('معرّف الاتصال غير موجود في الرابط.');
+                    showError('❌ معرّف الاتصال غير موجود في الرابط.');
                     return;
                 }
                 startAutoMode();
