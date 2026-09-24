@@ -1,4 +1,4 @@
-const CACHE_NAME = 'miraclepos-v4-dev';
+const CACHE_NAME = 'miraclepos-v2-dev-sundos';
 
 /*
 |--------------------------------------------------------------------------
