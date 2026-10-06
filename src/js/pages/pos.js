@@ -1928,6 +1928,8 @@ const app = createApp({
         // ═══════════════════════════════════════════════════════════
         const currentUser = ref(null);
         const isOnline = ref(navigator.onLine);
+        const batchesCache = new Map();
+        const BATCHES_CACHE_TTL = 60000;  // 60 ثانية
         const syncCountdown = ref(0);   // ✅ جديد
         const updateOnlineState = () => { isOnline.value = navigator.onLine; };
 
@@ -1982,7 +1984,7 @@ const app = createApp({
         // Recent sales
         const recentSales = ref([]);
         const offlineSalesCount = ref(0);
-        
+   
         // ✅ جديد — الديون الأوفلاين
         const localDebts = ref([]);
         const pendingLocalDebtsCount = ref(0);
@@ -2213,6 +2215,11 @@ const app = createApp({
                     allMedicines.value = medicines;
                     await saveMedicinesToCache(medicines);
                     usingCachedMedicines.value = false;
+
+                    // ✅ امسح Cache الدفعات — لأن الأسعار قد تغيرت
+                    batchesCache.clear();
+                    console.log('🗑️ تم إبطال Cache الدفعات');
+
                     return medicines;
                 } catch (error) {
                     console.warn('تعذر تحميل الأدوية:', error);
@@ -2223,6 +2230,10 @@ const app = createApp({
                 const cached = await getCachedMedicines();
                 allMedicines.value = Array.isArray(cached) ? cached.map(normalizeMedicine) : [];
                 usingCachedMedicines.value = true;
+
+                // ✅ امسح Cache عند استخدام Cache (قد تكون قديمة)
+                batchesCache.clear();
+
                 return allMedicines.value;
             } catch (error) {
                 allMedicines.value = [];
@@ -2366,12 +2377,41 @@ const app = createApp({
             focusSearch();
         };
 
+        const hasMultipleBatchesOrPrices = (medicine) => {
+            if (!medicine?.batches || medicine.batches.length === 0) return false;
+            
+            // إذا كانت هناك أكثر من دفعة
+            if (medicine.batches.length > 1) return true;
+            
+            // إذا كانت هناك دفعة واحدة لكن لها أسعار متعددة
+            const singleBatch = medicine.batches[0];
+            if (singleBatch?.prices && singleBatch.prices.length > 1) return true;
+            
+            return false;
+        };
+
         const checkAvailableBatches = async (medicine) => {
+            if (!medicine?.id) return null;
+
+            // ✅ فحص Cache أولاً
+            const cached = batchesCache.get(medicine.id);
+            if (cached && (Date.now() - cached.timestamp) < BATCHES_CACHE_TTL) {
+                return cached.data;
+            }
+
+            // ⚠️ اطلب من السيرفر
             try {
                 const res = await axios.get(
                     `${API_BASE}/medicines/${medicine.id}/available-batches`,
                     { params: { branch_id: currentUser.value?.branch_id } }
                 );
+
+                // ✅ خزّن النتيجة
+                batchesCache.set(medicine.id, {
+                    data: res.data,
+                    timestamp: Date.now(),
+                });
+
                 return res.data;
             } catch (e) {
                 return null;
@@ -2392,6 +2432,20 @@ const app = createApp({
                 return;
             }
 
+            /* ═══════════════════════════════════════════════════
+            ✅ فحص سريع محلي: هل نحتاج API؟
+            ═══════════════════════════════════════════════════ */
+            const needsApiCheck =
+                medicine.batches.length > 1 ||                    // أكثر من دفعة
+                (batch.prices && batch.prices.length > 1);        // أسعار متعددة في نفس الدفعة
+
+            // ✅ إذا لا يحتاج فحص → أضف مباشرة (فوري)
+            if (!needsApiCheck) {
+                proceedAddToCart(medicine, selectedPriceRecord, batch);
+                return;
+            }
+
+            // ⚠️ إذا يحتاج فحص → اطلب من السيرفر
             const batchesInfo = await checkAvailableBatches(medicine);
 
             if (batchesInfo?.has_multiple_prices && batchesInfo.batches.length > 1) {
@@ -4693,7 +4747,7 @@ const app = createApp({
             search, searchInput, filteredMedicines,
             findMedicineByBarcode, processBarcode, handleBarcodeSearch, focusSearch,
             allMedicines, usingCachedMedicines, formatStockQuantity, getPriceUnitName,
-            loadMedicines, normalizeMedicinesResponse,
+            loadMedicines, normalizeMedicinesResponse,hasMultipleBatchesOrPrices,
 
             // Cart
             cart, cartTotal, cartStockIssues, itemHasStockIssue,
