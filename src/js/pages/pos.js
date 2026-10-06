@@ -275,6 +275,12 @@ const app = createApp({
 
             <div class="flex items-center gap-1.5 md:gap-3 flex-shrink-0 order-2 md:order-3">
                 <div class="relative">
+                    <button @click="refreshPrices" 
+                            :disabled="refreshingPrices"
+                            class="bg-white/10 hover:bg-white/20 rounded-xl px-3 py-2 text-xs transition" 
+                            title="تحديث الأسعار">
+                        <i class="fas fa-sync-alt" :class="{'fa-spin': refreshingPrices}"></i>
+                    </button>
                     <button @click="showFinanceMenu=!showFinanceMenu" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold px-2.5 sm:px-3 md:px-4 py-2 md:py-2.5 rounded-xl shadow-lg transition flex items-center gap-1 md:gap-2 text-xs sm:text-sm md:text-base">
                         <i class="fas fa-coins"></i>
                         <span class="hidden sm:inline">مالية</span>
@@ -3826,7 +3832,26 @@ const app = createApp({
                 savingDebtPayment.value = false;
             }
         };
+        // ═══════════════════════════════════════════════════════════
+        // Refresh Prices
+        // ═══════════════════════════════════════════════════════════
+       
+        const refreshingPrices = ref(false);
 
+        const refreshPrices = async () => {
+            if (refreshingPrices.value) return;
+            refreshingPrices.value = true;
+
+            try {
+                batchesCache.clear();
+                await loadMedicines();
+                showAlert('✅ تم تحديث الأسعار', 'success');
+            } catch (e) {
+                showAlert('تعذر التحديث', 'error');
+            } finally {
+                refreshingPrices.value = false;
+            }
+        };
         // ═══════════════════════════════════════════════════════════
         // Offline Counter
         // ═══════════════════════════════════════════════════════════
@@ -4836,6 +4861,10 @@ const app = createApp({
             showLocalScanner, localScannerError, openLocalScanner, closeLocalScanner,
             localScanCount, localTorchOn, localTorchSupported, localScannerEngine,
             toggleLocalTorch,
+
+            // Prices
+             refreshingPrices,
+            refreshPrices,
         };
     }
     });
