@@ -458,8 +458,16 @@ const app = createApp({
         </div>
     </div>
 
+    <!-- شريط عدم الاتصال -->
     <div v-if="!isOnline" class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-2 md:p-3 mx-3 md:mx-6 mt-2 rounded shadow-sm flex items-center gap-2 text-sm md:text-base">
         <i class="fas fa-wifi-slash"></i> النظام يعمل حالياً بدون اتصال بالإنترنت
+    </div>
+
+    <!-- شريط الانتظار بعد عودة الإنترنت -->
+    <div v-else-if="syncCountdown > 0" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-2 md:p-3 mx-3 md:mx-6 mt-2 rounded shadow-sm flex items-center gap-2 text-sm md:text-base">
+        <i class="fas fa-hourglass-half fa-spin"></i>
+        <span>⏳ عاد الاتصال — جاري انتظار استقرار الشبكة...</span>
+        <span class="font-bold mr-auto">{{ syncCountdown }} ث</span>
     </div>
 
     <div class="lg:hidden sticky top-[56px] md:top-[68px] z-30 bg-white border-b-2 border-slate-200 shadow-sm">
@@ -1920,6 +1928,7 @@ const app = createApp({
         // ═══════════════════════════════════════════════════════════
         const currentUser = ref(null);
         const isOnline = ref(navigator.onLine);
+        const syncCountdown = ref(0);   // ✅ جديد
         const updateOnlineState = () => { isOnline.value = navigator.onLine; };
 
         const isLoading = ref(false);
@@ -1973,7 +1982,7 @@ const app = createApp({
         // Recent sales
         const recentSales = ref([]);
         const offlineSalesCount = ref(0);
-
+        
         // ✅ جديد — الديون الأوفلاين
         const localDebts = ref([]);
         const pendingLocalDebtsCount = ref(0);
@@ -4518,44 +4527,137 @@ const app = createApp({
             }
             window.location.href = 'login.html';
         };
+        
+        /* ═══════════════════════════════════════════════════════════
+        ✅ handleOnline — مع تأخير ذكي لاستقرار الشبكة
+        ═══════════════════════════════════════════════════════════ */
+
+        // متغيرات داخلية (outside setup — على مستوى الملف)
+        let _handleOnlineTimer = null;
         let _handleOnlineInFlight = null;
 
+        /**
+         * عودة الاتصال بالإنترنت — مع تأخير 20 ثانية
+         */
         const handleOnline = async () => {
+            console.log('🌐 عاد الاتصال بالإنترنت');
             isOnline.value = true;
 
+            // ⏸️ إذا كانت هناك محاولة جارية — تجاهل
             if (_handleOnlineInFlight) {
                 console.log('⏸️ handleOnline قيد التنفيذ — تجاهل');
                 return _handleOnlineInFlight;
             }
 
-            _handleOnlineInFlight = (async () => {
-                try {
-                    const result = await runFullSync();
-                    if (result.success) {
-                        if (result.total > 0) playSound('sync');
-                        showAlert(
-                            result.total > 0
-                                ? `✅ تمت مزامنة ${result.total} عملية`
-                                : '✅ لا توجد عمليات معلقة',
-                            'success'
-                        );
-                    }
-                    await loadShiftSilently();
-                    await loadMedicines();
-                    await loadRecentSales();
-                    await refreshOfflineCount();
-                    await loadPendingDebts();   // ✅ جديد — أعد تحميل الديون بعد المزامنة
-                } catch (error) {
-                    showAlert('⚠️ تعذرت المزامنة الكاملة', 'error');
-                } finally {
-                    _handleOnlineInFlight = null;
-                }
-            })();
+            // ⏸️ إذا كانت هناك مؤقت منتظر — أعد تعيينه
+            if (_handleOnlineTimer) {
+                clearTimeout(_handleOnlineTimer);
+                _handleOnlineTimer = null;
+            }
 
-            return _handleOnlineInFlight;
+            // ✅ عداد تنازلي بصري
+            syncCountdown.value = 20;
+            const countdownInterval = setInterval(() => {
+                if (syncCountdown.value > 0) {
+                    syncCountdown.value--;
+                }
+            }, 1000);
+
+            // ✅ تأخير 20 ثانية لاستقرار الشبكة
+            console.log('⏳ بدء مؤقت المزامنة (20 ثانية)...');
+
+            _handleOnlineTimer = setTimeout(async () => {
+                clearInterval(countdownInterval);
+                syncCountdown.value = 0;
+                _handleOnlineTimer = null;
+
+                console.log('🚀 بدء المزامنة بعد التأخير...');
+
+                _handleOnlineInFlight = (async () => {
+                    try {
+                        /* ═══════════════════════════════════════════════════
+                        فحص سريع: هل السيرفر يستجيب؟
+                        ═══════════════════════════════════════════════════ */
+                        try {
+                            await axios.get(`${API_BASE}/settings/public`, {
+                                params: { _ts: Date.now() },
+                                timeout: 10000,
+                            });
+                        } catch (pingError) {
+                            console.warn('⚠️ السيرفر لا يستجيب بعد — تأجيل المزامنة');
+                            showAlert('⚠️ الشبكة لم تستقر بعد — ستبدأ المزامنة تلقائياً', 'warning');
+
+                            // أعد المحاولة بعد 10 ثوان
+                            setTimeout(() => {
+                                console.log('🔄 إعادة محاولة المزامنة...');
+                                handleOnline();
+                            }, 10000);
+                            return;
+                        }
+
+                        /* ═══════════════════════════════════════════════════
+                        المزامنة الكاملة
+                        ═══════════════════════════════════════════════════ */
+                        const result = await runFullSync();
+
+                        if (result.success) {
+                            if (result.total > 0) playSound('sync');
+
+                            showAlert(
+                                result.total > 0
+                                    ? `✅ تمت مزامنة ${result.total} عملية`
+                                    : '✅ لا توجد عمليات معلقة',
+                                'success'
+                            );
+                        } else if (result.errors && result.errors.length > 0) {
+                            showAlert('⚠️ فشلت بعض العمليات — ستعاد المحاولة', 'warning');
+                        }
+
+                        /* ═══════════════════════════════════════════════════
+                        إعادة تحميل البيانات
+                        ═══════════════════════════════════════════════════ */
+                        await loadShiftSilently();
+                        await loadMedicines();
+                        await loadRecentSales();
+                        await refreshOfflineCount();
+                        await loadPendingDebts();
+
+                    } catch (error) {
+                        console.error('❌ handleOnline error:', error);
+                        showAlert('⚠️ تعذرت المزامنة — ستعاد المحاولة', 'error');
+
+                        // أعد المحاولة بعد 30 ثانية
+                        setTimeout(() => {
+                            console.log('🔄 إعادة محاولة المزامنة بعد خطأ...');
+                            handleOnline();
+                        }, 30000);
+                    } finally {
+                        _handleOnlineInFlight = null;
+                    }
+                })();
+
+                return _handleOnlineInFlight;
+            }, 20000);  // ← 20 ثانية
         };
 
-        const handleOffline = () => { isOnline.value = false; };
+
+        /**
+         * انقطاع الاتصال بالإنترنت
+         */
+        const handleOffline = () => {
+            console.log('❌ انقطع الاتصال بالإنترنت');
+            isOnline.value = false;
+
+            // ✅ إلغاء العد التنازلي
+            syncCountdown.value = 0;
+
+            // ✅ إلغاء المؤقت إذا كان موجوداً
+            if (_handleOnlineTimer) {
+                clearTimeout(_handleOnlineTimer);
+                _handleOnlineTimer = null;
+                console.log('⏸️ تم إلغاء مؤقت المزامنة');
+            }
+        };
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
@@ -4633,7 +4735,7 @@ const app = createApp({
             localDebts, pendingLocalDebtsCount, pendingDebtPaymentsCount,
 
             // Connection
-            handleOnline, handleOffline, logout, refreshOfflineCount, initApp, updateOnlineState,
+            handleOnline, handleOffline, logout, refreshOfflineCount, initApp, updateOnlineState,syncCountdown,
 
             // Settings
             logoFailed, pharmacySettings, syncProgress, activeTab,
