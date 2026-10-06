@@ -4148,9 +4148,9 @@ const app = createApp({
             return true;
         };
 
-        // ═══════════════════════════════════════════════════════════
-        // ✅ Checkout (مع دعم خصم الفاتورة + خصومات البنود)
-        // ═══════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════
+        ✅ Checkout (مع دعم خصم الفاتورة + خصومات البنود)
+        ═══════════════════════════════════════════════════════════ */
         const checkout = async () => {
             if (!cart.value.length) {
                 showAlert('السلة فارغة', 'error');
@@ -4202,8 +4202,8 @@ const app = createApp({
                 const localShiftId = currentShift.local_shift_id || currentShift.id;
 
                 /* ═══════════════════════════════════════════════════
-                   ✅ بناء الـ payload مع خصومات البنود + خصم الفاتورة
-                   ═══════════════════════════════════════════════════ */
+                ✅ بناء الـ payload مع خصومات البنود + خصم الفاتورة
+                ═══════════════════════════════════════════════════ */
                 const payload = {
                     branch_id: currentUser.value?.branch_id,
                     user_id: currentUser.value?.id,
@@ -4212,7 +4212,6 @@ const app = createApp({
                     bank_transfer: payment.method === 'bank' ? { ...payment.bank } : null,
 
                     items: cart.value.map(item => {
-                        // ✅ خصم البند المباشر
                         const lineDisc = Number(lineDiscounts[item.cart_key] || 0);
 
                         return {
@@ -4223,13 +4222,10 @@ const app = createApp({
                             quantity_base: item.quantity_base || item.quantity,
                             medicine_name: item.name,
                             price: item.selling_price,
-
-                            // ✅ خصم البند (إن وجد)
                             line_discount: lineDisc > 0 ? lineDisc : null,
                         };
                     }),
 
-                    // ✅ خصم الفاتورة (إن وُجد)
                     discount_type:   hasInvoiceDiscount.value ? discount.type : null,
                     discount_value:  hasInvoiceDiscount.value ? Number(discount.value) : 0,
                     discount_reason: hasInvoiceDiscount.value ? (discount.reason || null) : null,
@@ -4256,6 +4252,28 @@ const app = createApp({
 
                     saleResponse = await axios.post(`${API_BASE}/sales`, payload);
 
+                    /* ═══════════════════════════════════════════════════
+                    ✅ إضافة الفاتورة الجديدة إلى القائمة فوراً
+                    (Optimistic Update — قبل أن يجلب السيرفر)
+                    ═══════════════════════════════════════════════════ */
+                    const newSale = saleResponse?.data?.sale || saleResponse?.data;
+                    if (newSale && newSale.id) {
+                        const saleForList = {
+                            id: newSale.id,
+                            total_amount: totalAmount,
+                            payment_method: payment.method,
+                            created_at: newSale.created_at || new Date().toISOString(),
+                            is_refunded: false,
+                            is_local: false,
+                            is_new: true,
+                        };
+
+                        recentSales.value = [
+                            saleForList,
+                            ...recentSales.value.filter(s => s.id !== saleForList.id),
+                        ];
+                    }
+
                     for (const item of cart.value) {
                         try {
                             const qty = Number(item.quantity_base || item.quantity || 1);
@@ -4271,7 +4289,7 @@ const app = createApp({
                     await refreshCurrentShift();
                     loadMedicines().catch(() => {});
 
-                    // ✅ انتظر لحظتين ثم اجلب المبيعات الحديثة
+                    // ✅ إعادة الجلب (مباشرة + بعد تأخير بسيط لتجنب تأخير DB)
                     await loadRecentSales();
                     setTimeout(() => loadRecentSales(), 800);
                     setTimeout(() => loadRecentSales(), 2000);
@@ -4279,9 +4297,9 @@ const app = createApp({
                     playSound('checkout');
                     showAlert('تم حفظ الفاتورة بنجاح', 'success');
 
-                    // ═══════════════════════════════════════════════════
-                    // طباعة الفاتورة
-                    // ═══════════════════════════════════════════════════
+                    /* ═══════════════════════════════════════════════════
+                    طباعة الفاتورة
+                    ═══════════════════════════════════════════════════ */
                     try {
                         const invoiceId =
                             saleResponse?.data?.sale?.id ||
@@ -4293,13 +4311,11 @@ const app = createApp({
                             created_at: new Date().toISOString(),
                             total_amount: totalAmount,
 
-                            // خصم الفاتورة
                             discount_type:   hasInvoiceDiscount.value ? discount.type : null,
                             discount_value:  hasInvoiceDiscount.value ? Number(discount.value) : 0,
                             discount_amount: discountAmount.value,
                             discount_reason: hasInvoiceDiscount.value ? (discount.reason || null) : null,
 
-                            // خصومات البنود
                             line_discount_total: lineDiscountsTotal.value,
 
                             payment_method: payment.method,
@@ -4321,7 +4337,7 @@ const app = createApp({
 
                     // ✅ تصفير شامل
                     cart.value = [];
-                    resetDiscount();   // يستدعي clearAllLineDiscounts() داخلياً
+                    resetDiscount();
                     payment.method = 'cash';
                     payment.bank = {
                         bank_name: '',
