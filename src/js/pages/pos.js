@@ -1929,7 +1929,7 @@ const app = createApp({
         const currentUser = ref(null);
         const isOnline = ref(navigator.onLine);
         const batchesCache = new Map();
-        const BATCHES_CACHE_TTL = 60000;  // 60 ثانية
+        
         const syncCountdown = ref(0);   // ✅ جديد
         const updateOnlineState = () => { isOnline.value = navigator.onLine; };
 
@@ -2216,10 +2216,6 @@ const app = createApp({
                     await saveMedicinesToCache(medicines);
                     usingCachedMedicines.value = false;
 
-                    // ✅ امسح Cache الدفعات — لأن الأسعار قد تغيرت
-                    batchesCache.clear();
-                    console.log('🗑️ تم إبطال Cache الدفعات');
-
                     return medicines;
                 } catch (error) {
                     console.warn('تعذر تحميل الأدوية:', error);
@@ -2391,12 +2387,12 @@ const app = createApp({
         };
 
         const checkAvailableBatches = async (medicine) => {
-            if (!medicine?.id) return null;
+             if (!medicine?.id) return null;
 
             // ✅ فحص Cache أولاً
             const cached = batchesCache.get(medicine.id);
-            if (cached && (Date.now() - cached.timestamp) < BATCHES_CACHE_TTL) {
-                return cached.data;
+            if (cached) {
+                return cached;
             }
 
             // ⚠️ اطلب من السيرفر
@@ -2406,11 +2402,8 @@ const app = createApp({
                     { params: { branch_id: currentUser.value?.branch_id } }
                 );
 
-                // ✅ خزّن النتيجة
-                batchesCache.set(medicine.id, {
-                    data: res.data,
-                    timestamp: Date.now(),
-                });
+                // ✅ خزّن النتيجة (بدون TTL — تُبطَل عند تسجيل الخروج أو إعادة التحميل)
+                batchesCache.set(medicine.id, res.data);
 
                 return res.data;
             } catch (e) {
@@ -4573,6 +4566,10 @@ const app = createApp({
         };
 
         const logout = () => {
+            // ✅ امسح Cache الدفعات قبل الخروج
+            batchesCache.clear();
+            console.log('🗑️ تم مسح Cache الدفعات عند تسجيل الخروج');
+
             cleanupLocalScanner();
             localStorage.removeItem('token');
             localStorage.removeItem('offline_mode');
@@ -4724,6 +4721,10 @@ const app = createApp({
             window.addEventListener('online', handleOnline);
             window.addEventListener('offline', handleOffline);
             document.addEventListener('visibilitychange', handleVisibilityChange);
+            // ✅ امسح Cache عند مغادرة الصفحة (اختياري)
+            window.addEventListener('beforeunload', () => {
+                batchesCache.clear();
+            });
             await initApp();
             await nextTick();
             focusSearch();
@@ -4733,6 +4734,9 @@ const app = createApp({
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            
+            // ✅ امسح Cache
+            batchesCache.clear();
             destroyPhoneScanner();
             cleanupLocalScanner();
         });
