@@ -4270,7 +4270,11 @@ const app = createApp({
 
                     await refreshCurrentShift();
                     loadMedicines().catch(() => {});
+
+                    // ✅ انتظر لحظتين ثم اجلب المبيعات الحديثة
                     await loadRecentSales();
+                    setTimeout(() => loadRecentSales(), 800);
+                    setTimeout(() => loadRecentSales(), 2000);
 
                     playSound('checkout');
                     showAlert('تم حفظ الفاتورة بنجاح', 'success');
