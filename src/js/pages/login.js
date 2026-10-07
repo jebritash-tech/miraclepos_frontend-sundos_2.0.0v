@@ -34,7 +34,7 @@ import {
 */
 const EULA_VERSION = '1.0.0';
 const EULA_KEY = 'miraclepos_eula_acceptance';
-
+const loginInProgress = ref(false);
 
 /*
 |--------------------------------------------------------------------------
@@ -150,181 +150,228 @@ async function hashPassword(password) {
 */
 createApp({
 
-    template: `
+   template: `
 
-        <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div class="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-emerald-50/30 flex items-center justify-center p-4 sm:p-6">
 
             <div class="w-full max-w-md">
 
-                <div class="bg-white rounded-2xl shadow-xl p-8">
+                <!-- ✅ بطاقة تسجيل الدخول -->
+                <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
 
                     <!-- Header -->
+                    <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 px-6 sm:px-8 py-8 text-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
 
-                    <div class="text-center mb-8">
+                        <div class="relative z-10">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                               <img src="icons/icon-192.png" alt="Logo" class="w-16 h-16">
+                            </div>
+                            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                                Miracle<span class="text-emerald-200">POS</span>
+                            </h1>
+                            <p class="text-emerald-100 text-xs sm:text-sm mt-1.5 font-medium">نظام إدارة الصيدليات</p>
+                        </div>
+                    </div>
 
-                        <div class="text-5xl mb-3">
-                            💊
+                    <!-- Body -->
+                    <div class="px-6 sm:px-8 py-8">
+
+                        <!-- Offline Notice (Overlay) -->
+                        <div
+                            v-if="showOfflineOverlay"
+                            class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
+                        >
+                            <div class="text-center max-w-sm w-full">
+                                <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                                    <i class="fas fa-wifi text-red-400 text-4xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-black text-white mb-3">لا يوجد اتصال بالإنترنت</h2>
+                                <p class="text-slate-300 text-sm mb-8 leading-relaxed">
+                                    يجب تسجيل الدخول مرة واحدة بالإنترنت
+                                    قبل استخدام النظام دون اتصال.
+                                </p>
+                                <button
+                                    type="button"
+                                    @click="updateConnectionState"
+                                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/25 active:scale-95"
+                                >
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    إعادة المحاولة
+                                </button>
+                            </div>
                         </div>
 
-                        <h1 class="text-2xl font-bold text-emerald-800">
-                            MiraclePOS
-                        </h1>
+                        <!-- Login Form -->
+                        <div v-if="!showReset">
 
-                        <p class="text-sm text-slate-500 mt-1">
-                            نظام إدارة الصيدليات
-                        </p>
-
-                    </div>
-
-
-                    <!-- Offline Notice -->
-
-                    <div
-                        v-if="showOfflineOverlay"
-                        class="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-6"
-                    >
-
-                        <div class="text-center max-w-md">
-
-                            <div class="text-7xl mb-6">
-                                📡
+                            <div class="mb-6 text-center">
+                                <h2 class="text-xl sm:text-2xl font-black text-slate-800">تسجيل الدخول</h2>
+                                <p class="text-xs text-slate-500 mt-1">أدخل بياناتك للوصول إلى النظام</p>
                             </div>
 
-                            <h2 class="text-2xl font-bold text-red-600 mb-4">
-                                لا يوجد اتصال بالإنترنت
-                            </h2>
+                            <form @submit.prevent="login" class="space-y-5">
 
-                            <p class="text-slate-600 mb-8">
-                                يجب تسجيل الدخول مرة واحدة بالإنترنت
-                                قبل استخدام النظام دون اتصال.
-                            </p>
+                                <!-- Email -->
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fas fa-envelope text-emerald-600 text-xs ml-1"></i>
+                                        البريد الإلكتروني
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                            <i class="fas fa-user text-slate-300 text-sm"></i>
+                                        </div>
+                                        <input
+                                            v-model.trim="form.email"
+                                            type="email"
+                                            autocomplete="username"
+                                            placeholder="example@miraclepos.test"
+                                            required
+                                            :disabled="loginInProgress"
+                                            class="w-full p-3.5 pr-11 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                        >
+                                    </div>
+                                </div>
 
-                            <button
-                                type="button"
-                                @click="updateConnectionState"
-                                class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-bold transition"
-                            >
-                                إعادة المحاولة
-                            </button>
+                                <!-- Password -->
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fas fa-lock text-emerald-600 text-xs ml-1"></i>
+                                        كلمة المرور
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                            <i class="fas fa-key text-slate-300 text-sm"></i>
+                                        </div>
+                                        <input
+                                            v-model="form.password"
+                                            type="password"
+                                            autocomplete="current-password"
+                                            placeholder="••••••••"
+                                            required
+                                            :disabled="loginInProgress"
+                                            class="w-full p-3.5 pr-11 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                        >
+                                    </div>
+                                </div>
+
+                                <!-- Submit -->
+                                <button
+                                    type="submit"
+                                    :disabled="loginInProgress"
+                                    class="w-full bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 disabled:from-emerald-300 disabled:to-emerald-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-emerald-600/25 active:scale-[0.98] flex items-center justify-center gap-2 text-base"
+                                >
+                                    <i v-if="loginInProgress" class="fas fa-spinner fa-spin"></i>
+                                    <i v-else class="fas fa-sign-in-alt"></i>
+                                    <span>{{ loginInProgress ? 'جاري الدخول...' : 'دخول' }}</span>
+                                </button>
+
+                            </form>
+
+                            <!-- Forgot Password -->
+                            <div class="mt-6 text-center">
+                                <button
+                                    type="button"
+                                    @click="showReset = true"
+                                    :disabled="loginInProgress"
+                                    class="text-sm text-slate-500 hover:text-emerald-600 transition-colors disabled:opacity-50"
+                                >
+                                    <i class="fas fa-question-circle text-xs ml-1"></i>
+                                    نسيت كلمة المرور؟
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <!-- Password Reset -->
+                        <div v-else>
+
+                            <div class="mb-6 text-center">
+                                <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-unlock-alt text-blue-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-xl font-black text-slate-800">استعادة كلمة المرور</h2>
+                                <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                                    أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين
+                                </p>
+                            </div>
+
+                            <form @submit.prevent="sendResetLink" class="space-y-5">
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                                        <i class="fas fa-envelope text-blue-600 text-xs ml-1"></i>
+                                        البريد الإلكتروني
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                            <i class="fas fa-at text-slate-300 text-sm"></i>
+                                        </div>
+                                        <input
+                                            v-model.trim="resetEmail"
+                                            type="email"
+                                            autocomplete="email"
+                                            placeholder="example@miraclepos.test"
+                                            :disabled="loading"
+                                            class="w-full p-3.5 pr-11 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all text-sm disabled:opacity-60"
+                                        >
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    :disabled="loading"
+                                    class="w-full bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-blue-300 disabled:to-blue-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-black transition-all shadow-lg shadow-blue-600/25 active:scale-[0.98] flex items-center justify-center gap-2 text-base"
+                                >
+                                    <i v-if="loading" class="fas fa-spinner fa-spin"></i>
+                                    <i v-else class="fas fa-paper-plane"></i>
+                                    <span>{{ loading ? 'جاري الإرسال...' : 'إرسال الرابط' }}</span>
+                                </button>
+
+                            </form>
+
+                            <div class="mt-6 text-center">
+                                <button
+                                    type="button"
+                                    @click="showReset = false"
+                                    :disabled="loading"
+                                    class="text-sm text-slate-500 hover:text-emerald-600 transition-colors disabled:opacity-50"
+                                >
+                                    <i class="fas fa-arrow-right text-xs ml-1"></i>
+                                    عودة لتسجيل الدخول
+                                </button>
+                            </div>
 
                         </div>
 
                     </div>
 
-
-                    <!-- Login -->
-
-                    <div v-if="!showReset">
-
-                        <h2 class="text-2xl font-bold text-emerald-800 mb-6 text-center">
-                            تسجيل الدخول
-                        </h2>
-
-                        <form @submit.prevent="login" class="space-y-4">
-
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                    البريد الإلكتروني
-                                </label>
-
-                                <input
-                                    v-model.trim="form.email"
-                                    type="email"
-                                    autocomplete="username"
-                                    placeholder="البريد الإلكتروني"
-                                    required
-                                    class="w-full p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                >
-                            </div>
-
-
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                    كلمة المرور
-                                </label>
-
-                                <input
-                                    v-model="form.password"
-                                    type="password"
-                                    autocomplete="current-password"
-                                    placeholder="كلمة المرور"
-                                    required
-                                    class="w-full p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                >
-                            </div>
-
-
-                            <button
-                                type="submit"
-                                :disabled="loading"
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white py-3 rounded-lg font-bold transition"
-                            >
-                                {{ loading ? 'جاري الدخول...' : 'دخول' }}
-                            </button>
-
-                        </form>
-
-
-                        <button
-                            type="button"
-                            @click="showReset = true"
-                            class="mt-4 w-full text-sm text-slate-500 hover:text-emerald-600"
-                        >
-                            نسيت كلمة المرور؟
-                        </button>
-
-                    </div>
-
-
-                    <!-- Password Reset -->
-
-                    <div v-else>
-
-                        <h2 class="text-xl font-bold text-emerald-800 mb-4">
-                            استعادة كلمة المرور
-                        </h2>
-
-                        <p class="text-sm text-gray-600 mb-4">
-                            أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين.
+                    <!-- Footer -->
+                    <div class="bg-slate-50 border-t border-slate-100 px-6 py-4 text-center">
+                        <p class="text-[10px] text-slate-400">
+                            MiraclePOS v2.0 — جميع الحقوق محفوظة © 2026
                         </p>
-
-
-                        <input
-                            v-model.trim="resetEmail"
-                            type="email"
-                            autocomplete="email"
-                            placeholder="البريد الإلكتروني"
-                            class="w-full p-3 border border-slate-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-
-
-                        <button
-                            type="button"
-                            @click="sendResetLink"
-                            :disabled="loading"
-                            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-3 rounded-lg font-bold"
-                        >
-                            {{ loading ? 'جاري الإرسال...' : 'إرسال الرابط' }}
-                        </button>
-
-
-                        <button
-                            type="button"
-                            @click="showReset = false"
-                            class="mt-4 w-full text-gray-500 text-sm"
-                        >
-                            عودة لتسجيل الدخول
-                        </button>
-
                     </div>
 
+                </div>
+
+                <!-- Additional Links -->
+                <div class="mt-6 text-center">
+                    <p class="text-[10px] text-slate-400">
+                        بالمتابعة، أنت توافق على
+                        <a href="legal/eula.html" class="text-emerald-600 hover:underline">شروط الاستخدام</a>
+                        و
+                        <a href="legal/privacy.html" class="text-emerald-600 hover:underline">سياسة الخصوصية</a>
+                    </p>
                 </div>
 
             </div>
 
         </div>
 
-    `,
+        `,
 
 
     setup() {
@@ -357,12 +404,17 @@ createApp({
         */
 
         const login = async () => {
+            if (loginInProgress.value) {
+                console.log('⏸️ محاولة دخول مكررة — تجاهل');
+                return;
+            }
 
             if (!form.value.email || !form.value.password) {
                 alert('أدخل البريد الإلكتروني وكلمة المرور');
                 return;
             }
 
+            loginInProgress.value = true;
             loading.value = true;
 
             try {
@@ -485,21 +537,11 @@ createApp({
                 // ✅ التوجيه للوجهة حسب الدور
                 window.location.href = destination;
 
-            }
-
-            catch (error) {
-
+                } catch (error) {
                 console.error('Login Error:', error);
-
-                alert(
-                    error?.response?.data?.message
-                    || error?.message
-                    || 'خطأ في بيانات الدخول'
-                );
-
-            }
-
-            finally {
+                alert(error?.response?.data?.message || error?.message || 'خطأ في بيانات الدخول');
+            } finally {
+                loginInProgress.value = false;
                 loading.value = false;
             }
 
@@ -579,6 +621,7 @@ createApp({
         return {
             form,
             loading,
+            loginInProgress,   // ✅ جديد
             showReset,
             resetEmail,
             showOfflineOverlay,
