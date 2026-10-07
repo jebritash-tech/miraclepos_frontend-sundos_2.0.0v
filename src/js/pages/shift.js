@@ -1952,25 +1952,7 @@ if (document.getElementById('app')) {
                 }
             };
             const openingInProgress = ref(false);
-            const openShift = async () => {
-                if (openingInProgress.value) {
-                    console.log('⏸️ محاولة فتح وردية مكررة — تجاهل');
-                    return;
-                }
 
-                openingInProgress.value = true;
-                loading.value = true;
-
-                try {
-                    await openShiftCore(openingCash.value, true);
-                } catch (error) {
-                    alert(error.response?.data?.message || error.message || 'تعذر فتح الوردية');
-                } finally {
-                    openingInProgress.value = false;
-                    loading.value = false;
-                }
-            };
-            const openingInProgress = ref(false);   // ✅ جديد
             const navigatingToPOS = ref(false);     // ✅ جديد
 
 
