@@ -2217,11 +2217,42 @@
                 if (isOnline.value) {
                     try {
                         const branchId = currentUser.value?.branch_id;
-                        const response = await axios.get(`${API_BASE}/sales/medicines`, {
-                            params: { branch_id: branchId, _ts: Date.now() }
-                        });
 
-                        const medicines = normalizeMedicinesResponse(response);
+                        /* ═══════════════════════════════════════════════════
+                        ✅ جلب الأدوية + كل الدفعات في طلبين متوازيين
+                        ═══════════════════════════════════════════════════ */
+                        const [medicinesRes, batchesRes] = await Promise.all([
+                            axios.get(`${API_BASE}/sales/medicines`, {
+                                params: { branch_id: branchId, _ts: Date.now() }
+                            }),
+                            axios.get(`${API_BASE}/medicines/available-batches/all`, {
+                                params: { branch_id: branchId, _ts: Date.now() }
+                            }).catch(err => {
+                                console.warn('⚠️ تعذر جلب الدفعات الكاملة:', err);
+                                return { data: [] };
+                            }),
+                        ]);
+
+                        const medicines = normalizeMedicinesResponse(medicinesRes);
+
+                        /* ═══════════════════════════════════════════════════
+                        ✅ خزّن الدفعات في batchesCache دفعة واحدة
+                        ═══════════════════════════════════════════════════ */
+                        batchesCache.clear();
+
+                        const batchesList = batchesRes.data || [];
+                        console.log(`📦 تم تحميل ${batchesList.length} دفعة لكل الأدوية`);
+
+                        for (const item of batchesList) {
+                            if (item?.medicine_id && Array.isArray(item.batches)) {
+                                batchesCache.set(item.medicine_id, {
+                                    batches: item.batches,
+                                    has_multiple_prices: item.has_multiple_prices || false,
+                                    price_range: item.price_range || { min: 0, max: 0 },
+                                });
+                            }
+                        }
+
                         allMedicines.value = medicines;
                         await saveMedicinesToCache(medicines);
                         usingCachedMedicines.value = false;
@@ -2236,10 +2267,6 @@
                     const cached = await getCachedMedicines();
                     allMedicines.value = Array.isArray(cached) ? cached.map(normalizeMedicine) : [];
                     usingCachedMedicines.value = true;
-
-                    // ✅ امسح Cache عند استخدام Cache (قد تكون قديمة)
-                    batchesCache.clear();
-
                     return allMedicines.value;
                 } catch (error) {
                     allMedicines.value = [];
@@ -2399,21 +2426,29 @@
             const checkAvailableBatches = async (medicine) => {
                 if (!medicine?.id) return null;
 
-                // ✅ فحص Cache أولاً
+                // ✅ فحص Cache أولاً — يجب أن يكون ممتلئاً
                 const cached = batchesCache.get(medicine.id);
                 if (cached) {
-                    return cached;
+                    return {
+                        batches: cached.batches,
+                        has_multiple_prices: cached.has_multiple_prices,
+                        price_range: cached.price_range,
+                    };
                 }
 
-                // ⚠️ اطلب من السيرفر
+                // ⚠️ Fallback: إذا لم يُوجد، اطلبه من السيرفر (نادراً)
+                console.warn(`⚠️ Cache miss للدواء ${medicine.id} — طلب من السيرفر`);
                 try {
                     const res = await axios.get(
                         `${API_BASE}/medicines/${medicine.id}/available-batches`,
                         { params: { branch_id: currentUser.value?.branch_id } }
                     );
 
-                    // ✅ خزّن النتيجة (بدون TTL — تُبطَل عند تسجيل الخروج أو إعادة التحميل)
-                    batchesCache.set(medicine.id, res.data);
+                    batchesCache.set(medicine.id, {
+                        batches: res.data.batches || [],
+                        has_multiple_prices: res.data.has_multiple_prices || false,
+                        price_range: res.data.price_range || { min: 0, max: 0 },
+                    });
 
                     return res.data;
                 } catch (e) {
