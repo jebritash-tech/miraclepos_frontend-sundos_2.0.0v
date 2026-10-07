@@ -34,7 +34,7 @@ import {
 */
 const EULA_VERSION = '1.0.0';
 const EULA_KEY = 'miraclepos_eula_acceptance';
-const loginInProgress = ref(false);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -183,6 +183,31 @@ createApp({
                             v-if="showOfflineOverlay"
                             class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
                         >
+
+                        <!-- Offline Notice (Overlay) -->
+                        <div
+                            v-if="showOfflineOverlay"
+                            class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
+                        >
+                            <div class="text-center max-w-sm w-full">
+                                <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                                    <i class="fas fa-wifi text-red-400 text-4xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-black text-white mb-3">لا يوجد اتصال بالإنترنت</h2>
+                                <p class="text-slate-300 text-sm mb-8 leading-relaxed">
+                                    يجب تسجيل الدخول مرة واحدة بالإنترنت
+                                    قبل استخدام النظام دون اتصال.
+                                </p>
+                                <button
+                                    type="button"
+                                    @click="updateConnectionState"
+                                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/25 active:scale-95"
+                                >
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    إعادة المحاولة
+                                </button>
+                            </div>
+                        </div>
 
                         <!-- ✅ Overlay تسجيل الدخول -->
                         <transition
@@ -410,38 +435,20 @@ createApp({
 
         `,
 
-
     setup() {
-
         const form = ref({ email: '', password: '' });
         const loading = ref(false);
+        const loginInProgress = ref(false);   // ✅ نُقل هنا
         const showReset = ref(false);
         const resetEmail = ref('');
         const showOfflineOverlay = ref(false);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Connection State
-        |--------------------------------------------------------------------------
-        */
-
         const updateConnectionState = async () => {
             const cachedUser = await readCachedUser();
-
-            showOfflineOverlay.value =
-                !navigator.onLine && !cachedUser;
+            showOfflineOverlay.value = !navigator.onLine && !cachedUser;
         };
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Login
-        |--------------------------------------------------------------------------
-        */
-
         const login = async () => {
-           // ✅ حماية من الضغط المكرر
             if (loginInProgress.value) {
                 console.log('⏸️ محاولة دخول مكررة — تجاهل');
                 return;
@@ -454,6 +461,7 @@ createApp({
 
             loginInProgress.value = true;
             loading.value = true;
+
 
             try {
 
@@ -575,17 +583,17 @@ createApp({
                 // ✅ التوجيه للوجهة حسب الدور
                 window.location.href = destination;
 
-                } catch (error) {
-                    console.error('Login Error:', error);
-                    alert(
-                        error?.response?.data?.message
-                        || error?.message
-                        || 'خطأ في بيانات الدخول'
-                    );
-                } finally {
-                    loginInProgress.value = false;
-                    loading.value = false;
-                }
+                    } catch (error) {
+                console.error('Login Error:', error);
+                alert(
+                    error?.response?.data?.message
+                    || error?.message
+                    || 'خطأ في بيانات الدخول'
+                );
+            } finally {
+                loginInProgress.value = false;
+                loading.value = false;
+            }
 
         };
 
@@ -643,27 +651,20 @@ createApp({
         */
 
         onMounted(async () => {
-
             await updateConnectionState();
-
             window.addEventListener('online', updateConnectionState);
             window.addEventListener('offline', updateConnectionState);
-
         });
-
 
         onUnmounted(() => {
-
             window.removeEventListener('online', updateConnectionState);
             window.removeEventListener('offline', updateConnectionState);
-
         });
-
 
         return {
             form,
             loading,
-            loginInProgress,   // ✅ جديد
+            loginInProgress,
             showReset,
             resetEmail,
             showOfflineOverlay,
