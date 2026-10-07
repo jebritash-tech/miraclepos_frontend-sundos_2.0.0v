@@ -1071,6 +1071,11 @@ async function _runEventsSyncInternal() {
 |--------------------------------------------------------------------------
 | Internal: Run Finance Sync
 |--------------------------------------------------------------------------
+| ✅ تحسينات:
+|   - ترتيب العمليات: withdraw قبل debt_payment
+|   - لا تُعلِّم debt_payment أو withdraw كـ failed
+|   - أعِد المحاولة تلقائياً للعمليات الحساسة
+|--------------------------------------------------------------------------
 */
 async function _runFinanceSync() {
     if (!navigator.onLine) return false;
@@ -1082,18 +1087,66 @@ async function _runFinanceSync() {
     if (!token) return false;
 
     const userId = user.id;
+
+    /* ═══════════════════════════════════════════════════════════
+       ✅ 0. أعد تعيين failed للعمليات الحساسة (withdraw, debt_payment)
+       ═══════════════════════════════════════════════════════════ */
+    const allOps = getPendingShiftFinanceOperations(userId);
+    let resetCount = 0;
+
+    for (const op of allOps) {
+        if (
+            op.failed === true &&
+            (op.type === 'debt_payment' || op.type === 'withdraw')
+        ) {
+            op.failed = false;
+            op.synced = false;
+            delete op.failure_reason;
+            delete op.failed_at;
+            resetCount++;
+        }
+    }
+
+    if (resetCount > 0) {
+        savePendingShiftFinanceOperations(userId, allOps);
+        console.log(`🔄 إعادة تعيين ${resetCount} عملية فاشلة (withdraw/debt_payment)`);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       1. اجلب العمليات المعلقة
+       ═══════════════════════════════════════════════════════════ */
     const queue = getPendingShiftFinanceOperations(userId);
     const pending = queue.filter(op => !op.synced && !op.failed);
 
-    if (!pending.length) return true;
+    if (!pending.length) {
+        console.log('📭 لا توجد عمليات مالية معلقة');
+        return true;
+    }
 
+    /* ═══════════════════════════════════════════════════════════
+       2. صنّف العمليات + ترتيب
+       ═══════════════════════════════════════════════════════════ */
     const sales = pending.filter(op => op.type === 'sale');
     const refunds = pending.filter(op => op.type === 'refund');
-    const others = pending.filter(op => op.type !== 'sale' && op.type !== 'refund');
+
+    // ✅ العمليات المالية — رتّب: withdraw أولاً ثم الباقي حسب created_at
+    const others = pending
+        .filter(op => op.type !== 'sale' && op.type !== 'refund')
+        .sort((a, b) => {
+            // withdraw قبل debt_payment
+            if (a.type === 'withdraw' && b.type !== 'withdraw') return -1;
+            if (b.type === 'withdraw' && a.type !== 'withdraw') return 1;
+            // ثم حسب created_at
+            return new Date(a.created_at) - new Date(b.created_at);
+        });
+
+    console.log('📋 ترتيب العمليات المالية:', others.map(op => `${op.type}(${op.amount})`));
 
     const completedIds = [];
 
-    // 1️⃣ المبيعات
+    /* ═══════════════════════════════════════════════════════════
+       3. المبيعات
+       ═══════════════════════════════════════════════════════════ */
     for (const operation of sales) {
         syncProgress.currentLabel = 'مزامنة فاتورة بيع';
 
@@ -1109,6 +1162,7 @@ async function _runFinanceSync() {
         }
 
         if (!Number.isInteger(serverShiftId) || serverShiftId <= 0) {
+            console.warn('⚠️ مبيعات: لا يوجد server_shift_id — تخطي');
             continue;
         }
 
@@ -1123,12 +1177,10 @@ async function _runFinanceSync() {
                 bank_transfer: operation.bank_transfer || null,
                 items: operation.items || [],
 
-                // ✅ خصم الفاتورة
                 discount_type:   operation.discount_type || null,
                 discount_value:  operation.discount_value || 0,
                 discount_reason: operation.discount_reason || null,
 
-                // ✅ خصومات البنود (مرسل داخل items، لكن نمررها أيضاً لتقاريرنا)
                 line_discount_total: operation.line_discount_total || 0,
 
                 created_at: operation.created_at || new Date().toISOString(),
@@ -1144,15 +1196,16 @@ async function _runFinanceSync() {
             });
 
             const serverSaleId = response.data?.sale?.id || response.data?.id;
+
             if (serverSaleId) {
+                // ✅ اربط المرتجعات المعلقة بمعرّف السيرفر
                 const allOps = getPendingShiftFinanceOperations(userId);
-                for (const refund of refunds) {
-                    if (refund.sale_id === operation.operation_id || refund.sale_id === operation.id) {
+                for (const refund of allOps) {
+                    if (
+                        refund.type === 'refund' &&
+                        (refund.sale_id === operation.operation_id || refund.sale_id === operation.id)
+                    ) {
                         refund.sale_id = serverSaleId;
-                        const idx = allOps.findIndex(o => o.operation_id === refund.operation_id);
-                        if (idx !== -1) {
-                            allOps[idx].sale_id = serverSaleId;
-                        }
                     }
                 }
                 savePendingShiftFinanceOperations(userId, allOps);
@@ -1173,14 +1226,17 @@ async function _runFinanceSync() {
                 completedIds.push(operation.operation_id);
                 syncProgress.current++;
             } else {
+                // خطأ شبكة → اترك للمحاولة التالية
                 break;
             }
         }
     }
 
-    // 2️⃣ الإرجاعات
+    /* ═══════════════════════════════════════════════════════════
+       4. الإرجاعات
+       ═══════════════════════════════════════════════════════════ */
     const updatedQueue = getPendingShiftFinanceOperations(userId);
-    const updatedRefunds = updatedQueue.filter(op => op.type === 'refund' && !op.synced);
+    const updatedRefunds = updatedQueue.filter(op => op.type === 'refund' && !op.synced && !op.failed);
 
     for (const operation of updatedRefunds) {
         syncProgress.currentLabel = 'مزامنة إرجاع';
@@ -1208,6 +1264,7 @@ async function _runFinanceSync() {
                 items: operation.items || [],
                 created_at: operation.created_at || new Date().toISOString(),
             };
+
             await axios.post(`${API_BASE}/refunds`, payload, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -1236,7 +1293,9 @@ async function _runFinanceSync() {
         }
     }
 
-    // 3️⃣ العمليات الأخرى
+    /* ═══════════════════════════════════════════════════════════
+       5. العمليات المالية (withdraw, expense, debt_payment)
+       ═══════════════════════════════════════════════════════════ */
     for (const operation of others) {
         if (operation.type === 'expense') {
             syncProgress.currentLabel = 'مزامنة مصروف';
@@ -1251,11 +1310,17 @@ async function _runFinanceSync() {
             serverShiftId = Number(getShiftMapping(userId, operation.local_shift_id) || 0);
         }
 
-        if (!Number.isInteger(serverShiftId) || serverShiftId <= 0) continue;
+        if (!Number.isInteger(serverShiftId) || serverShiftId <= 0) {
+            console.warn(`⚠️ ${operation.type}: لا يوجد server_shift_id — تخطي`);
+            continue;
+        }
 
         operation.shift_id = serverShiftId;
 
         try {
+            /* ═══════════════════════════════════════════════
+               EXPENSE
+               ═══════════════════════════════════════════════ */
             if (operation.type === 'expense') {
                 await axios.post(`${API_BASE}/expenses`, {
                     title: operation.title || '',
@@ -1271,7 +1336,12 @@ async function _runFinanceSync() {
                         Accept: 'application/json',
                     }
                 });
-            } else if (operation.type === 'withdraw') {
+            }
+
+            /* ═══════════════════════════════════════════════
+               WITHDRAW — ✅ احفظ server_debt_id
+               ═══════════════════════════════════════════════ */
+            else if (operation.type === 'withdraw') {
                 const withdrawRes = await axios.post(`${API_BASE}/shift/withdraw`, {
                     amount: Number(operation.amount || 0),
                     reason: operation.reason || '',
@@ -1285,39 +1355,47 @@ async function _runFinanceSync() {
                     }
                 });
 
-                // ✅ خزّن mapping: local operation_id → server debt id
-                const serverDebtId = withdrawRes.data?.debt?.id
-                    || withdrawRes.data?.debt_id
-                    || withdrawRes.data?.data?.debt?.id;
+                const serverDebtId =
+                    withdrawRes.data?.debt?.id ||
+                    withdrawRes.data?.debt_id ||
+                    withdrawRes.data?.data?.debt?.id;
 
                 if (serverDebtId && operation.operation_id) {
                     saveDebtMapping(userId, operation.operation_id, serverDebtId);
                     console.log(`✅ withdraw synced: op=${operation.operation_id} → debt_id=${serverDebtId}`);
                 } else {
-                    console.warn('⚠️ لم يُرجع السيرفر debt_id:', withdrawRes.data);
+                    console.warn('⚠️ السيرفر لم يُرجع debt_id:', withdrawRes.data);
                 }
-            } else if (operation.type === 'debt_payment') {
-                // ✅ ترجمة debt_id المحلي إلى server_id
+            }
+
+            /* ═══════════════════════════════════════════════
+               DEBT_PAYMENT — ✅ ترجم debt_id
+               ═══════════════════════════════════════════════ */
+            else if (operation.type === 'debt_payment') {
                 let finalDebtId = operation.debt_id;
 
                 if (finalDebtId) {
-                    // إذا كان UUID محلي (ليس رقماً)
                     const isNumericId = /^\d+$/.test(String(finalDebtId));
 
                     if (!isNumericId) {
-                        // ابحث في mapping
+                        // ✅ UUID محلي — ابحث عن server_id
                         const serverDebtId = getDebtMapping(userId, finalDebtId);
 
                         if (serverDebtId) {
                             finalDebtId = String(serverDebtId);
                             console.log(`✅ debt_payment: ترجمة ${operation.debt_id} → ${finalDebtId}`);
                         } else {
-                            // ✅ لم يُعثر على mapping — استخدم null ليُطبَّق FIFO على السيرفر
-                            console.warn(`⚠️ لم يُعثر على mapping لـ ${finalDebtId} — استخدام FIFO`);
+                            console.warn(`⚠️ لا يوجد mapping لـ ${finalDebtId} — استخدام FIFO`);
                             finalDebtId = null;
                         }
                     }
                 }
+
+                console.log('💳 إرسال debt_payment:', {
+                    original_debt_id: operation.debt_id,
+                    final_debt_id: finalDebtId,
+                    amount: operation.amount,
+                });
 
                 await axios.post(`${API_BASE}/shift/debt-payment`, {
                     amount: Number(operation.amount || 0),
@@ -1332,13 +1410,8 @@ async function _runFinanceSync() {
                         Accept: 'application/json',
                     }
                 });
-
-                // ✅ بعد نجاح السداد، احذف mapping الدين إذا اكتمل
-                if (finalDebtId) {
-                    // يمكن حذف mapping لاحقاً عند إغلاق الوردية
-                    // لا نحذفه الآن — قد يحتاج سداد آخر
-                }
             }
+
             completedIds.push(operation.operation_id);
             syncProgress.current++;
 
@@ -1346,6 +1419,24 @@ async function _runFinanceSync() {
             const status = error.response?.status;
             syncProgress.errors.push(`فشل مزامنة ${operation.type}: ${error.message}`);
 
+            console.error(`❌ فشل ${operation.type}:`, {
+                status,
+                message: error.message,
+                data: error.response?.data,
+            });
+
+            /* ═══════════════════════════════════════════════
+               ✅ معالجة خاصة لـ withdraw و debt_payment
+               — لا تُعلِّم كـ failed (فشل مؤقت)
+               ═══════════════════════════════════════════════ */
+            if (operation.type === 'debt_payment' || operation.type === 'withdraw') {
+                console.warn(`⚠️ ${operation.type} فشل — سيبقى للمحاولة التالية`);
+                break;  // اخرج من الحلقة
+            }
+
+            /* ═══════════════════════════════════════════════
+               للعمليات الأخرى — السلوك القديم
+               ═══════════════════════════════════════════════ */
             if (status === 422 || status === 400) {
                 markOperationAsFailed(userId, operation.operation_id, error.response?.data?.message || error.message);
                 syncProgress.current++;
@@ -1358,11 +1449,15 @@ async function _runFinanceSync() {
         }
     }
 
+    /* ═══════════════════════════════════════════════════════════
+       6. احفظ القائمة المحدّثة
+       ═══════════════════════════════════════════════════════════ */
     if (completedIds.length) {
         const remaining = getPendingShiftFinanceOperations(userId).filter(
             op => !completedIds.includes(op.operation_id)
         );
         savePendingShiftFinanceOperations(userId, remaining);
+        console.log(`🗑️ تم حذف ${completedIds.length} عملية من القائمة`);
     }
 
     return true;
