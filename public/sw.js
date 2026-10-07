@@ -17,6 +17,7 @@ const APP_SHELL = [
     './pos.html',
     './shift.html',
     './analytics.html',
+    './guide.html',
     './faq.html',
     './eula.html',
     './privacy.html',
