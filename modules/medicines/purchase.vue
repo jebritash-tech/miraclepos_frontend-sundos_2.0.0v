@@ -65,27 +65,49 @@
            <div class="space-y-5">
             <!-- ✅ البحث عن الدواء — عرض كامل -->
             <div class="relative space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    <i class="fas fa-search text-emerald-600 text-[10px] ml-1"></i>
-                    ابحث باسم الدواء أو باركود الوحدة
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <i class="fas fa-pills text-slate-300 text-sm"></i>
-                    </div>
-                    <input
-                        v-model="search"
-                        class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 pr-11 py-3 text-base text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
-                        placeholder="ابدأ بكتابة اسم الدواء أو امسح الباركود..."
-                    >
-                </div>
-                <div v-if="filteredMedicines.length" class="absolute z-50 bg-white border border-slate-100 rounded-xl shadow-xl w-full mt-2 max-h-72 overflow-auto divide-y divide-slate-50">
-                    <div v-for="medicine in filteredMedicines" :key="medicine.id" @click="chooseMedicine(medicine)" class="p-3.5 cursor-pointer hover:bg-emerald-50/50 transition-colors flex flex-col gap-0.5">
-                        <div class="font-bold text-slate-800 text-sm">{{ medicine.name }}</div>
-                        <div class="text-xs font-mono text-slate-400">{{ medicine.barcode }}</div>
-                    </div>
-                </div>
-            </div>
+              <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <i class="fas fa-search text-emerald-600 text-[10px] ml-1"></i>
+                  ابحث باسم الدواء أو باركود الوحدة
+              </label>
+              <div class="relative">
+                  <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <i class="fas fa-pills text-slate-300 text-sm"></i>
+                  </div>
+                  <input
+                      v-model="search"
+                      @focus="showDropdown = true"
+                      @input="showDropdown = true"
+                      @blur="hideDropdown"
+                      @keydown.esc="showDropdown = false"
+                      class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 pr-11 py-3 text-base text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                      placeholder="ابدأ بكتابة اسم الدواء أو امسح الباركود..."
+                  >
+                  <!-- ✅ زر مسح البحث -->
+                  <button
+                      v-if="search"
+                      @click="clearSearch"
+                      type="button"
+                      class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 hover:text-rose-500 transition"
+                      title="مسح البحث"
+                  >
+                      <i class="fas fa-times-circle"></i>
+                  </button>
+              </div>
+              <div
+                  v-if="filteredMedicines.length"
+                  class="absolute z-50 bg-white border border-slate-100 rounded-xl shadow-xl w-full mt-2 max-h-72 overflow-auto divide-y divide-slate-50"
+              >
+                  <div
+                      v-for="medicine in filteredMedicines"
+                      :key="medicine.id"
+                      @mousedown.prevent="chooseMedicine(medicine)"
+                      class="p-3.5 cursor-pointer hover:bg-emerald-50/50 transition-colors flex flex-col gap-0.5"
+                  >
+                      <div class="font-bold text-slate-800 text-sm">{{ medicine.name }}</div>
+                      <div class="text-xs font-mono text-slate-400">{{ medicine.barcode }}</div>
+                  </div>
+              </div>
+          </div>
 
             <!-- ✅ حقلان متساويان — عناصر تحت بعضها -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -627,6 +649,7 @@ const purchase = reactive({
 const purchaseItems = ref([]);
 const availableUnits = ref([]);
 const search = ref("");
+const showDropdown = ref(false); 
 const selectedMedicine = ref(null);
 const saving = ref(false);
 
@@ -653,13 +676,26 @@ const historySearch = ref('');
 
 // ===== Computed =====
 const filteredMedicines = computed(() => {
-    if (!search.value) return [];
+    // ✅ لا تعرض القائمة إذا كانت مغلقة
+    if (!showDropdown.value) return [];
+
+    // ✅ لا تعرض إذا كان البحث قصيراً
+    const query = String(search.value || '').trim();
+    if (query.length < 2) return [];
+
+    // ✅ إذا تم اختيار دواء مطابق تماماً، لا تعرض القائمة
+    if (
+        selectedMedicine.value &&
+        selectedMedicine.value.name === query
+    ) {
+        return [];
+    }
+
     return medicines.value.filter(m =>
-        m.name?.toLowerCase().includes(search.value.toLowerCase()) ||
-        (m.barcode || "").includes(search.value)
+        m.name?.toLowerCase().includes(query.toLowerCase()) ||
+        (m.barcode || "").includes(query)
     ).slice(0, 20);
 });
-
 const filteredHistory = computed(() => {
     if (!historySearch.value) return purchases.value;
     const query = historySearch.value.toLowerCase().trim();
@@ -727,11 +763,13 @@ const resetItem = () => {
     availableUnits.value = [];
     selectedMedicine.value = null;
     search.value = "";
+    showDropdown.value = false;   // ← ✅
 };
 
 const chooseMedicine = (medicine) => {
     selectedMedicine.value = medicine;
     search.value = medicine.name;
+    showDropdown.value = false;   // ← ✅ أغلق القائمة فوراً
     item.medicine_id = medicine.id;
     item.medicine_name = medicine.name;
 
@@ -869,6 +907,18 @@ const savePurchase = async () => {
     } finally {
         saving.value = false;
     }
+};
+
+const hideDropdown = () => {
+    setTimeout(() => {
+        showDropdown.value = false;
+    }, 200);
+};
+
+const clearSearch = () => {
+    search.value = '';
+    selectedMedicine.value = null;
+    showDropdown.value = false;
 };
 
 // ===== Watchers =====
