@@ -178,92 +178,63 @@ createApp({
                     <!-- Body -->
                     <div class="px-6 sm:px-8 py-8">
 
-                        <!-- Offline Notice (Overlay) -->
+                       <!-- ✅ Overlay تسجيل الدخول -->
+                    <transition
+                        enter-active-class="transition-opacity duration-200"
+                        enter-from-class="opacity-0"
+                        enter-to-class="opacity-100"
+                        leave-active-class="transition-opacity duration-200"
+                        leave-from-class="opacity-100"
+                        leave-to-class="opacity-0"
+                    >
                         <div
-                            v-if="showOfflineOverlay"
-                            class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
+                            v-if="loginInProgress"
+                            class="fixed inset-0 z-[99999] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6"
                         >
-
-                        <!-- Offline Notice (Overlay) -->
-                        <div
-                            v-if="showOfflineOverlay"
-                            class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
-                        >
-                            <div class="text-center max-w-sm w-full">
-                                <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                                    <i class="fas fa-wifi text-red-400 text-4xl"></i>
+                            <div class="text-center max-w-sm">
+                                <div class="relative w-24 h-24 mx-auto mb-6">
+                                    <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
+                                    <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
+                                    <div class="absolute inset-3 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                        <i class="fas fa-sign-in-alt text-emerald-400 text-3xl"></i>
+                                    </div>
                                 </div>
-                                <h2 class="text-2xl font-black text-white mb-3">لا يوجد اتصال بالإنترنت</h2>
-                                <p class="text-slate-300 text-sm mb-8 leading-relaxed">
-                                    يجب تسجيل الدخول مرة واحدة بالإنترنت
-                                    قبل استخدام النظام دون اتصال.
-                                </p>
-                                <button
-                                    type="button"
-                                    @click="updateConnectionState"
-                                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/25 active:scale-95"
-                                >
-                                    <i class="fas fa-sync-alt mr-2"></i>
-                                    إعادة المحاولة
-                                </button>
+
+                                <h2 class="text-xl font-black text-white mb-2">جاري تسجيل الدخول...</h2>
+                                <p class="text-sm text-slate-300 mb-4">يتم التحقق من بياناتك، الرجاء الانتظار</p>
+
+                                <div class="flex items-center justify-center gap-1.5 mt-6">
+                                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                                </div>
                             </div>
                         </div>
+                    </transition>
 
-                        <!-- ✅ Overlay تسجيل الدخول -->
-                        <transition
-                            enter-active-class="transition-opacity duration-200"
-                            enter-from-class="opacity-0"
-                            enter-to-class="opacity-100"
-                            leave-active-class="transition-opacity duration-200"
-                            leave-from-class="opacity-100"
-                            leave-to-class="opacity-0"
-                        >
-                            <div
-                                v-if="loginInProgress"
-                                class="fixed inset-0 z-[99999] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6"
+                    <!-- ✅ Overlay عدم الاتصال -->
+                    <div v-if="showOfflineOverlay"
+                        class="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6"
+                    >
+                        <div class="text-center max-w-sm w-full">
+                            <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                                <i class="fas fa-wifi text-red-400 text-4xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-white mb-3">لا يوجد اتصال بالإنترنت</h2>
+                            <p class="text-slate-300 text-sm mb-8 leading-relaxed">
+                                يجب تسجيل الدخول مرة واحدة بالإنترنت
+                                قبل استخدام النظام دون اتصال.
+                            </p>
+                            <button
+                                type="button"
+                                @click="updateConnectionState"
+                                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/25 active:scale-95"
                             >
-                                <div class="text-center max-w-sm">
-                                    <!-- Spinner -->
-                                    <div class="relative w-24 h-24 mx-auto mb-6">
-                                        <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
-                                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
-                                        <div class="absolute inset-3 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                            <i class="fas fa-sign-in-alt text-emerald-400 text-3xl"></i>
-                                        </div>
-                                    </div>
-
-                                    <!-- Text -->
-                                    <h2 class="text-xl font-black text-white mb-2">جاري تسجيل الدخول...</h2>
-                                    <p class="text-sm text-slate-300 mb-4">يتم التحقق من بياناتك، الرجاء الانتظار</p>
-
-                                    <!-- Progress dots -->
-                                    <div class="flex items-center justify-center gap-1.5 mt-6">
-                                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-                                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
-                                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </transition>
-                            <div class="text-center max-w-sm w-full">
-                                <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                                    <i class="fas fa-wifi text-red-400 text-4xl"></i>
-                                </div>
-                                <h2 class="text-2xl font-black text-white mb-3">لا يوجد اتصال بالإنترنت</h2>
-                                <p class="text-slate-300 text-sm mb-8 leading-relaxed">
-                                    يجب تسجيل الدخول مرة واحدة بالإنترنت
-                                    قبل استخدام النظام دون اتصال.
-                                </p>
-                                <button
-                                    type="button"
-                                    @click="updateConnectionState"
-                                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/25 active:scale-95"
-                                >
-                                    <i class="fas fa-sync-alt mr-2"></i>
-                                    إعادة المحاولة
-                                </button>
-                            </div>
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                إعادة المحاولة
+                            </button>
                         </div>
+                    </div>
 
                         <!-- Login Form -->
                         <div v-if="!showReset">
