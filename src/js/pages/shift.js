@@ -1950,15 +1950,22 @@ if (document.getElementById('app')) {
                     checkingShift.value = false;
                 }
             };
-
+            const openingInProgress = ref(false);
             const openShift = async () => {
-                if (loading.value) return;
+                if (openingInProgress.value) {
+                    console.log('⏸️ محاولة فتح وردية مكررة — تجاهل');
+                    return;
+                }
+
+                openingInProgress.value = true;
                 loading.value = true;
+
                 try {
                     await openShiftCore(openingCash.value, true);
                 } catch (error) {
                     alert(error.response?.data?.message || error.message || 'تعذر فتح الوردية');
                 } finally {
+                    openingInProgress.value = false;
                     loading.value = false;
                 }
             };
@@ -1984,6 +1991,7 @@ if (document.getElementById('app')) {
                 cachedShift,
                 isOnline,
                 openShift,
+                openingInProgress,   // ✅ جديد
                 goToPOS,
                 syncProgress,
                 loadingMedicines,
