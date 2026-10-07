@@ -236,6 +236,7 @@
         <!-- ═══════════════════════════════════════════════════════════
             الشريط العلوي
             ═══════════════════════════════════════════════════════════ -->
+        
         <nav class="bg-gradient-to-r from-slate-800 to-blue-800 text-white shadow-xl px-3 sm:px-4 md:px-6 py-2 md:py-3 sticky top-0 z-40">
             <div class="flex items-center justify-between gap-2 md:gap-4 flex-wrap">
                 <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
@@ -1799,7 +1800,52 @@
                 </button>
             </div>
         </div>
+                <!-- Global Loader -->
+        <div
+            v-if="globalLoading"
+            class="fixed inset-0 z-[9999] bg-white/70 flex items-center justify-center backdrop-blur-sm"
+        >
+            <div class="flex flex-col items-center">
+                <i class="fas fa-spinner fa-spin text-4xl sm:text-5xl text-sky-600"></i>
+                <p class="mt-3 sm:mt-4 font-bold text-slate-700 text-sm sm:text-base">جاري المعالجة...</p>
+            </div>
+        </div>
+        <!-- ✅ Overlay تسجيل الخروج -->
+        <transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="loggingOut"
+                class="fixed inset-0 z-[99999] bg-slate-900/85 backdrop-blur-md flex items-center justify-center p-6"
+            >
+                <div class="text-center max-w-sm">
+                    <!-- Spinner -->
+                    <div class="relative w-24 h-24 mx-auto mb-6">
+                        <div class="absolute inset-0 rounded-full border-4 border-rose-500/20"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-rose-500 animate-spin"></div>
+                        <div class="absolute inset-3 rounded-full bg-rose-500/10 flex items-center justify-center">
+                            <i class="fas fa-sign-out-alt text-rose-400 text-3xl"></i>
+                        </div>
+                    </div>
 
+                    <!-- Text -->
+                    <h2 class="text-xl font-black text-white mb-2">جاري تسجيل الخروج...</h2>
+                    <p class="text-sm text-slate-300 mb-4">يتم حفظ البيانات وإغلاق الجلسة</p>
+
+                    <!-- Progress dots -->
+                    <div class="flex items-center justify-center gap-1.5 mt-6">
+                        <div class="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                        <div class="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                        <div class="w-2 h-2 bg-rose-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                    </div>
+                </div>
+            </div>
+        </transition>
         <!-- Alert -->
         <div v-if="alert.show"
             class="fixed top-3 sm:top-4 left-1/2 -translate-x-1/2 z-[100000] px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-2xl transition-all duration-300 max-w-md mx-2"
@@ -1826,6 +1872,7 @@
         <footer class="hidden lg:block text-center p-2 text-slate-400 border-t bg-white text-[10px]">
             <p>MiraclePOS v2.0 | إدارة الصيدليات</p>
         </footer>
+
     `,
 
         setup() {
@@ -3503,6 +3550,9 @@
                         return;
                     }
 
+                   // ✅ وَلِّد local_id فريداً
+                    const localDebtId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
                     const operation = {
                         type: 'withdraw',
                         amount,
@@ -3513,10 +3563,19 @@
                         user_id: currentUser.value?.id,
                         created_at: new Date().toISOString(),
                         synced: false,
+                        // ✅ اربط العملية بـ local_debt_id
+                        local_debt_id: localDebtId,
                     };
 
-                    // ✅ يُحدّث الوردية محلياً + يُرجع الوردية المُحدَّثة
-                    const result = await updateShiftAfterPOSOperation(operation);
+                    await updateShiftAfterPOSOperation(operation);
+
+                    // ✅ خزّن local_debt_id في localStorage مؤقتاً
+                    // حتى يمكن لـ saveDebtPayment استخدامه
+                    const userId = currentUser.value?.id;
+                    if (userId) {
+                        const key = `miraclepos_last_local_debt_${userId}`;
+                        localStorage.setItem(key, localDebtId);
+                    }
 
                     // ✅ حدّث shift.value من النتيجة مباشرة
                     if (result?.shift) {
@@ -3814,9 +3873,20 @@
                     let debtIdForOp = null;
 
                     if (selectedDebt.server_id) {
+                        // ✅ دين على السيرفر — استخدم server_id
                         debtIdForOp = String(selectedDebt.server_id);
-                    } else if (selectedDebt.local_id) {
-                        debtIdForOp = String(selectedDebt.local_id);
+                    } else {
+                        // ✅ دين محلي — استخدم آخر local_debt_id محفوظ
+                        const userId = currentUser.value?.id;
+                        const key = `miraclepos_last_local_debt_${userId}`;
+                        const lastLocalDebtId = localStorage.getItem(key);
+
+                        if (lastLocalDebtId) {
+                            debtIdForOp = lastLocalDebtId;
+                            console.log('💳 استخدام local_debt_id:', lastLocalDebtId);
+                        } else if (selectedDebt.local_id) {
+                            debtIdForOp = String(selectedDebt.local_id);
+                        }
                     }
 
                     const operation = {
@@ -4629,17 +4699,54 @@
                 }
             };
 
-            const logout = () => {
-                // ✅ امسح Cache الدفعات قبل الخروج
+           const loggingOut = ref(false);
+
+            const logout = async () => {
+                // ✅ حماية من الضغط المكرر
+                if (loggingOut.value) return;
+
+                loggingOut.value = true;
+
+                console.log('🚪 بدء تسجيل الخروج...');
+
+                // ✅ إذا كان هناك مزامنة جارية — انتظرها (بحد أقصى 3 ثوان)
+                if (syncProgress.active) {
+                    console.log('⏳ انتظار المزامنة الجارية...');
+                    const startWait = Date.now();
+                    while (syncProgress.active && (Date.now() - startWait) < 3000) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+
+                // ✅ محاولة حفظ ما تبقى (إن كان متصلاً)
+                if (isOnline.value && currentUser.value?.id) {
+                    try {
+                        await Promise.race([
+                            runFullSync(),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+                        ]);
+                        console.log('✅ تم حفظ البيانات قبل الخروج');
+                    } catch (e) {
+                        console.warn('⚠️ تعذر إكمال المزامنة قبل الخروج:', e.message);
+                    }
+                }
+
+                // ✅ امسح Cache الدفعات
                 batchesCache.clear();
-                console.log('🗑️ تم مسح Cache الدفعات عند تسجيل الخروج');
+                console.log('🗑️ تم مسح Cache الدفعات');
 
                 cleanupLocalScanner();
+
+                // ✅ تأخير بسيط لإظهار الـ overlay
+                await new Promise(resolve => setTimeout(resolve, 500));
+
                 localStorage.removeItem('token');
                 localStorage.removeItem('offline_mode');
                 if (axios.defaults.headers?.common) {
                     delete axios.defaults.headers.common.Authorization;
                 }
+
+                console.log('✅ الخروج — إعادة التوجيه...');
                 window.location.href = 'login.html';
             };
             
@@ -4857,7 +4964,7 @@
                 localDebts, pendingLocalDebtsCount, pendingDebtPaymentsCount,
 
                 // Connection
-                handleOnline, handleOffline, logout, refreshOfflineCount, initApp, updateOnlineState,syncCountdown,
+                handleOnline, handleOffline, logout,loggingOut, refreshOfflineCount, initApp, updateOnlineState,syncCountdown,
 
                 // Settings
                 logoFailed, pharmacySettings, syncProgress, activeTab,
