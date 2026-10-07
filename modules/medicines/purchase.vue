@@ -62,60 +62,142 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> إضافة صنف</h3>
           </div>
           <div class="p-4 lg:p-8 section-padding">
-            <div class="add-item-grid">
-              <!-- البحث -->
-              <div class="relative space-y-1.5 search-field">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">ابحث باسم الدواء أو باركود الوحدة</label>
+           <div class="space-y-5">
+            <!-- ✅ البحث عن الدواء — عرض كامل -->
+            <div class="relative space-y-1.5">
+                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    <i class="fas fa-search text-emerald-600 text-[10px] ml-1"></i>
+                    ابحث باسم الدواء أو باركود الوحدة
+                </label>
                 <div class="relative">
-                  <input v-model="search" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400" placeholder="ابدأ بكتابة اسم الدواء...">
+                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <i class="fas fa-pills text-slate-300 text-sm"></i>
+                    </div>
+                    <input
+                        v-model="search"
+                        class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-4 pr-11 py-3 text-base text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                        placeholder="ابدأ بكتابة اسم الدواء أو امسح الباركود..."
+                    >
                 </div>
                 <div v-if="filteredMedicines.length" class="absolute z-50 bg-white border border-slate-100 rounded-xl shadow-xl w-full mt-2 max-h-72 overflow-auto divide-y divide-slate-50">
-                  <div v-for="medicine in filteredMedicines" :key="medicine.id" @click="chooseMedicine(medicine)" class="p-3.5 cursor-pointer hover:bg-emerald-50/50 transition-colors flex flex-col gap-0.5">
-                    <div class="font-bold text-slate-800 text-sm">{{ medicine.name }}</div>
-                    <div class="text-xs font-mono text-slate-400">{{ medicine.barcode }}</div>
-                  </div>
+                    <div v-for="medicine in filteredMedicines" :key="medicine.id" @click="chooseMedicine(medicine)" class="p-3.5 cursor-pointer hover:bg-emerald-50/50 transition-colors flex flex-col gap-0.5">
+                        <div class="font-bold text-slate-800 text-sm">{{ medicine.name }}</div>
+                        <div class="text-xs font-mono text-slate-400">{{ medicine.barcode }}</div>
+                    </div>
                 </div>
-              </div>
-
-              <!-- الوحدة -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الوحدة</label>
-                <select v-model="item.unit_id" @change="changeUnit" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-                  <option value="">اختر الوحدة</option>
-                  <option v-for="unit in availableUnits" :key="unit.id" :value="unit.id">{{ unit.name }} (معامل: {{ unit.factor }})</option>
-                </select>
-              </div>
-
-              <!-- الكمية -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الكمية</label>
-                <input type="number" min="1" v-model.number="item.quantity" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-              </div>
-
-              <!-- السعر -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">سعر الشراء</label>
-                <input type="number" step="0.01" v-model.number="item.buy_price" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-              </div>
-
-              <!-- سعر الوحدة الأساسية -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">سعر الوحدة الأساسية</label>
-                <input type="number" step="0.01" :value="baseUnitPrice" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-500 cursor-not-allowed">
-              </div>
-
-              <!-- LOT -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">LOT</label>
-                <input v-model="item.batch_number" id="lot-input" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono">
-              </div>
-
-              <!-- EXP -->
-              <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">الصلاحية</label>
-                <input type="date" v-model="item.expiry_date" class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
-              </div>
             </div>
+
+            <!-- ✅ حقلان متساويان — عناصر تحت بعضها -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- ═══════════ الجانب الأيمن — بيانات الشراء ═══════════ -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 pb-2 border-b border-emerald-100">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">بيانات الشراء</span>
+                    </div>
+
+                    <!-- الوحدة -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-box text-emerald-500 text-[10px] ml-1"></i>
+                            الوحدة
+                        </label>
+                        <select
+                            v-model="item.unit_id"
+                            @change="changeUnit"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                        >
+                            <option value="">اختر الوحدة</option>
+                            <option v-for="unit in availableUnits" :key="unit.id" :value="unit.id">
+                                {{ unit.name }} (معامل: {{ unit.factor }})
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- الكمية -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-sort-numeric-up text-emerald-500 text-[10px] ml-1"></i>
+                            الكمية
+                        </label>
+                        <input
+                            type="number"
+                            min="1"
+                            v-model.number="item.quantity"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                            placeholder="1"
+                        >
+                    </div>
+
+                    <!-- سعر الشراء -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-tag text-emerald-500 text-[10px] ml-1"></i>
+                            سعر الشراء
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            v-model.number="item.buy_price"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                            placeholder="0.00"
+                        >
+                    </div>
+                </div>
+
+                <!-- ═══════════ الجانب الأيسر — بيانات الدفعة ═══════════ -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 pb-2 border-b border-blue-100">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span class="text-xs font-bold text-blue-700 uppercase tracking-wider">بيانات الدفعة</span>
+                    </div>
+
+                    <!-- سعر الوحدة الأساسية -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-calculator text-blue-500 text-[10px] ml-1"></i>
+                            سعر الوحدة الأساسية
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            :value="baseUnitPrice"
+                            disabled
+                            class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-500 cursor-not-allowed font-mono"
+                        >
+                    </div>
+
+                    <!-- LOT -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-barcode text-blue-500 text-[10px] ml-1"></i>
+                            رقم الدفعة (LOT)
+                        </label>
+                        <input
+                            v-model="item.batch_number"
+                            id="lot-input"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                            placeholder="B-001"
+                        >
+                    </div>
+
+                    <!-- EXP -->
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <i class="fas fa-calendar-alt text-blue-500 text-[10px] ml-1"></i>
+                            تاريخ الصلاحية
+                        </label>
+                        <input
+                            type="date"
+                            v-model="item.expiry_date"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-3 text-sm text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                        >
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
             <!-- معلومات الوحدة -->
             <div v-if="selectedUnit" class="mt-6 bg-slate-50/70 border border-slate-200/60 rounded-2xl p-4 lg:p-5">
@@ -848,14 +930,6 @@ input:focus, select:focus {
   outline: none;
 }
 
-/* ============================================
-   قسم إضافة الصنف — تحسين الشبكة
-   ============================================ */
-.add-item-grid {
-  display: grid;
-  grid-template-columns: 4fr 2fr 1fr 1fr 1fr 1fr 1fr;
-  gap: 1rem;
-}
 
 /* ============================================
    قسم معلومات الوحدة (5 أعمدة)
@@ -892,13 +966,6 @@ input:focus, select:focus {
     position: static !important;
   }
 
-  .add-item-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .add-item-grid .search-field {
-    grid-column: 1 / -1;
-  }
 
   .unit-info-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -913,10 +980,6 @@ input:focus, select:focus {
    الموبايل الصغير (أقل من 640px)
    ============================================ */
 @media (max-width: 639px) {
-  .add-item-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
 
   .unit-info-grid {
     grid-template-columns: 1fr;
