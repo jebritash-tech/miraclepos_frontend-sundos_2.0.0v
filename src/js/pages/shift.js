@@ -232,6 +232,7 @@ export function recalculateExpectedCash(shift) {
     return nextShift;
 }
 
+
 /*
 |--------------------------------------------------------------------------
 | Shift Cache (exported)
@@ -1969,8 +1970,50 @@ if (document.getElementById('app')) {
                     loading.value = false;
                 }
             };
+            const openingInProgress = ref(false);   // ✅ جديد
+            const navigatingToPOS = ref(false);     // ✅ جديد
 
-            const goToPOS = () => window.location.href = 'pos.html';
+
+                /**
+                 * ✅ فتح الوردية — مع overlay
+                 */
+                const openShift = async () => {
+                    if (openingInProgress.value) {
+                        console.log('⏸️ محاولة فتح وردية مكررة — تجاهل');
+                        return;
+                    }
+
+                    openingInProgress.value = true;
+                    loading.value = true;
+
+                    try {
+                        await openShiftCore(openingCash.value, true);
+                    } catch (error) {
+                        alert(error.response?.data?.message || error.message || 'تعذر فتح الوردية');
+                        openingInProgress.value = false;
+                        loading.value = false;
+                    }
+                    // ⚠️ لا نُعيدها لـ false في حال النجاح — لأن الصفحة ستُغادر
+                };
+
+                /**
+                 * ✅ الانتقال إلى POS — مع overlay
+                 */
+                const goToPOS = async () => {
+                    if (navigatingToPOS.value) {
+                        console.log('⏸️ محاولة انتقال مكررة — تجاهل');
+                        return;
+                    }
+
+                    navigatingToPOS.value = true;
+
+                    // ✅ تأخير بسيط لإظهار الـ overlay
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    window.location.href = 'pos.html';
+                };
+
+            
 
             onMounted(async () => {
                 await refreshState();
@@ -1985,13 +2028,15 @@ if (document.getElementById('app')) {
 
             return {
                 openingCash,
+                openingInProgress,      // ✅ جديد
+                navigatingToPOS,        // ✅ جديد
                 loading,
                 checkingShift,
                 currentUser,
                 cachedShift,
                 isOnline,
                 openShift,
-                openingInProgress,   // ✅ جديد
+               
                 goToPOS,
                 syncProgress,
                 loadingMedicines,
