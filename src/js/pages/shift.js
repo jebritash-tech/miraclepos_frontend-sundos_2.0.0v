@@ -1360,9 +1360,19 @@ async function _runFinanceSync() {
                     withdrawRes.data?.debt_id ||
                     withdrawRes.data?.data?.debt?.id;
 
-                if (serverDebtId && operation.operation_id) {
-                    saveDebtMapping(userId, operation.operation_id, serverDebtId);
-                    console.log(`✅ withdraw synced: op=${operation.operation_id} → debt_id=${serverDebtId}`);
+                if (serverDebtId) {
+                    // ✅ اربط بـ operation_id (للمبيعات)
+                    if (operation.operation_id) {
+                        saveDebtMapping(userId, operation.operation_id, serverDebtId);
+                    }
+                    
+                    // ✅ اربط بـ local_debt_id (للسدادات)
+                    if (operation.local_debt_id) {
+                        saveDebtMapping(userId, operation.local_debt_id, serverDebtId);
+                        console.log(`✅ withdraw → local_debt_id=${operation.local_debt_id}, server_debt_id=${serverDebtId}`);
+                    }
+                    
+                    console.log(`✅ withdraw synced: op=${operation.operation_id}, local=${operation.local_debt_id} → debt_id=${serverDebtId}`);
                 } else {
                     console.warn('⚠️ السيرفر لم يُرجع debt_id:', withdrawRes.data);
                 }
