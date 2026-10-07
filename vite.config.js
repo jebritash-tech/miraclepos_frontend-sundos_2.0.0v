@@ -37,7 +37,7 @@ export default defineConfig({
         install: resolve(__dirname, 'install.html'),
         faq: resolve(__dirname, 'faq.html'),
         scan: resolve(__dirname, 'scan.html'),
-
+        guide: resolve(__dirname, 'guide.html'),
         'forgot-password': resolve(__dirname, 'forgot-password.html'),
         'reset-password': resolve(__dirname, 'reset-password.html')
       }
