@@ -3550,7 +3550,9 @@
                         return;
                     }
 
-                   // ✅ وَلِّد local_id فريداً
+                    /* ═══════════════════════════════════════════════════
+                    ✅ وَلِّد local_debt_id فريد
+                    ═══════════════════════════════════════════════════ */
                     const localDebtId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
                     const operation = {
@@ -3567,17 +3569,17 @@
                         local_debt_id: localDebtId,
                     };
 
-                    await updateShiftAfterPOSOperation(operation);
+                    const result = await updateShiftAfterPOSOperation(operation);
 
-                    // ✅ خزّن local_debt_id في localStorage مؤقتاً
-                    // حتى يمكن لـ saveDebtPayment استخدامه
+                    // ✅ خزّن local_debt_id في localStorage
                     const userId = currentUser.value?.id;
                     if (userId) {
                         const key = `miraclepos_last_local_debt_${userId}`;
                         localStorage.setItem(key, localDebtId);
+                        console.log('💾 حفظ last_local_debt:', localDebtId);
                     }
 
-                    // ✅ حدّث shift.value من النتيجة مباشرة
+                    // ✅ حدّث shift.value من النتيجة
                     if (result?.shift) {
                         shift.value = { ...result.shift };
                         if (currentUser.value?.id) {
@@ -3585,6 +3587,7 @@
                         }
                     }
 
+                    // مزامنة فورية إن كان متصلاً
                     if (navigator.onLine) {
                         try {
                             await syncPendingShiftFinanceOperations();
@@ -3817,7 +3820,7 @@
             const closeDebtPaymentModal = () => { showDebtPaymentModal.value = false; };
 
         
-        
+                    
             const saveDebtPayment = async () => {
                 if (savingDebtPayment.value) return;
 
@@ -3870,22 +3873,29 @@
                         return;
                     }
 
+                    /* ═══════════════════════════════════════════════════
+                    ✅ تحديد debt_id الصحيح
+                    ═══════════════════════════════════════════════════ */
                     let debtIdForOp = null;
 
                     if (selectedDebt.server_id) {
                         // ✅ دين على السيرفر — استخدم server_id
                         debtIdForOp = String(selectedDebt.server_id);
+                        console.log('💳 دين سيرفر:', debtIdForOp);
                     } else {
-                        // ✅ دين محلي — استخدم آخر local_debt_id محفوظ
+                        // ✅ دين محلي — استخدم last_local_debt من localStorage
                         const userId = currentUser.value?.id;
                         const key = `miraclepos_last_local_debt_${userId}`;
                         const lastLocalDebtId = localStorage.getItem(key);
 
                         if (lastLocalDebtId) {
                             debtIdForOp = lastLocalDebtId;
-                            console.log('💳 استخدام local_debt_id:', lastLocalDebtId);
+                            console.log('💳 استخدام last_local_debt:', lastLocalDebtId);
                         } else if (selectedDebt.local_id) {
                             debtIdForOp = String(selectedDebt.local_id);
+                            console.log('💳 استخدام local_id:', debtIdForOp);
+                        } else {
+                            console.warn('⚠️ لم يُعثر على debt_id — سيعمل FIFO');
                         }
                     }
 
@@ -3902,10 +3912,9 @@
                         synced: false,
                     };
 
-                    // ✅ يُحدّث الوردية محلياً + يُرجع الوردية المُحدَّثة
                     const result = await updateShiftAfterPOSOperation(operation);
 
-                    // ✅ حدّث shift.value من النتيجة مباشرة
+                    // ✅ حدّث shift.value من النتيجة
                     if (result?.shift) {
                         shift.value = { ...result.shift };
                         if (currentUser.value?.id) {
