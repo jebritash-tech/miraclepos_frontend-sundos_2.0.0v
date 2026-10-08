@@ -177,7 +177,7 @@
           </div>
           <div class="support-content">
             <h3>دليل الاساخدام</h3>
-            <p>دليل البدء السريع + دليل كامل لاستخدام النظام</p>
+            <p>دليل البدء السريع + دليل كامل الاستخدام النظام</p>
           </div>
           <i class="fas fa-chevron-left support-arrow"></i>
         </a>
